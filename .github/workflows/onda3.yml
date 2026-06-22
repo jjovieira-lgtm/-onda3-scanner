@@ -1,0 +1,38 @@
+name: Onda3 Daily Scan
+
+# Roda de segunda a sexta as 22:00 UTC = 19:00 BRT (Brasil, UTC-3).
+# Tambem pode ser disparado manualmente pelo botao "Run workflow".
+on:
+  schedule:
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      - name: Rodar scan (gera o relatorio HTML)
+        shell: pwsh
+        run: ./onda3_daily_scan.ps1 -SemEmail -OutFile onda3_report.html
+
+      - name: Ler assunto do email
+        id: meta
+        run: echo "subject=$(cat onda3_subject.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: ${{ steps.meta.outputs.subject }}
+          to: jjovieira@gmail.com
+          from: Onda3 Scanner <${{ secrets.GMAIL_USER }}>
+          html_body: file://onda3_report.html
