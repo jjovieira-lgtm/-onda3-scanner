@@ -227,7 +227,22 @@ $htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 Scanner</title></he
 if($OutFile -ne ""){ $htmlFile = $OutFile } else { $htmlFile = Join-Path $env:USERPROFILE "Downloads\onda3_report_$dateFile.html" }
 $htmlBody | Out-File $htmlFile -Encoding UTF8
 Write-Host "HTML salvo: $htmlFile"
-if($OutFile -ne ""){ "[Onda3] Scan Diario $dateStr | 2-TF:$n2tf | 1-TF:$n1tf" | Out-File "onda3_subject.txt" -Encoding UTF8 -NoNewline; Write-Host "Subject: onda3_subject.txt" }
+if($OutFile -ne ""){
+    "[Onda3] Scan Diario $dateStr | 2-TF:$n2tf | 1-TF:$n1tf" | Out-File "onda3_subject.txt" -Encoding UTF8 -NoNewline; Write-Host "Subject: onda3_subject.txt"
+    $ptbr=[System.Globalization.CultureInfo]::GetCultureInfo("pt-BR")
+    $eW=[char]::ConvertFromUtf32(0x1F30A);$eV=[char]::ConvertFromUtf32(0x1F534);$eC=[char]::ConvertFromUtf32(0x1F7E2);$eA=[char]::ConvertFromUtf32(0x1F7E1);$eX=[char]::ConvertFromUtf32(0x26A0);$eM=[char]::ConvertFromUtf32(0x1F4E7)
+    $tg=@()
+    $tg+="<b>$eW Onda 3 Scanner - $dateStr</b>"
+    $tg+="2-TF: $n2tf | 1-TF: $n1tf | Outros: $nop"
+    $tg+=""
+    if($dqSell.Count -gt 0){$tg+="$eV <b>Melhor venda:</b> $($dqSell[0].T) (alvo $($dqSell[0].TL) R`$ $($dqSell[0].TG.ToString('N2',$ptbr)) / $($dqSell[0].TP)%)"}
+    if($dqBuyAtv.Count -gt 0){$tg+="$eC <b>Compras Onda 3 ativa:</b> $(JoinT ($dqBuyAtv|ForEach-Object{$_.T}))"}
+    if($dqBuyWait.Count -gt 0){$tg+="$eA <b>Aguardar (Zona Verm):</b> $(JoinT ($dqBuyWait|ForEach-Object{ ""$($_.T) (+$($_.TP)%)"" }))"}
+    if($dqStale.Count -gt 0){$tg+="$eX <b>Ignorar (fractal obsoleto):</b> $(JoinT ($dqStale|ForEach-Object{$_.T}))"}
+    $tg+=""
+    $tg+="$eM Relatorio completo no e-mail."
+    ($tg -join "`n") | Out-File "onda3_telegram.txt" -Encoding UTF8 -NoNewline; Write-Host "Telegram: onda3_telegram.txt"
+}
 
 if(-not$SemEmail){
     $credFile = Join-Path $env:USERPROFILE "Downloads\.onda3_cred.xml"

@@ -36,3 +36,15 @@ jobs:
           to: jjovieira@gmail.com
           from: Onda3 Scanner <${{ secrets.GMAIL_USER }}>
           html_body: file://onda3_report.html
+
+      - name: Enviar Telegram
+        run: |
+          RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text@onda3_telegram.txt" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true")
+          echo "Resposta Telegram: $RESP"
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
