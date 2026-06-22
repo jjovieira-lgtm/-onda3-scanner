@@ -37,14 +37,6 @@ jobs:
           from: Onda3 Scanner <${{ secrets.GMAIL_USER }}>
           html_body: file://onda3_report.html
 
-      - name: Descobrir chat_id (temporario)
-        run: |
-          echo "=== Numeros (chat_id) de quem falou com o bot ==="
-          curl -s "https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates" | jq -r '.result[].message.chat | "CHAT_ID = \(.id)  (nome: \(.first_name // .title))"' | sort -u
-          echo "=== Se nada apareceu acima: mande /start e 'oi' ao SEU bot e rode de novo ==="
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-
       - name: Enviar Telegram
         run: |
           RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
