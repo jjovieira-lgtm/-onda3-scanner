@@ -1,6 +1,6 @@
-name: Velez US Scan
+name: Trifecta US Scan (Oliver Velez)
 
-# Scanner Barra Elefante (Oliver Velez) - mercado americano (NYSE/Nasdaq).
+# Scanner Trifecta (Oliver Velez) - timeframes 2m/5m/15m, gatilho barra elefante - mercado americano (NYSE/Nasdaq).
 # Envio a cada 2h a partir da abertura (9:30 ET): 9:45, 11:45, 13:45, 15:45, 17:45 ET.
 #
 # A NYSE usa horario de verao (EDT=UTC-4 no verao, EST=UTC-5 no inverno), que o Brasil nao tem.

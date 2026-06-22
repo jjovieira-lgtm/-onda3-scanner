@@ -1,5 +1,5 @@
-# velez_us_scan.ps1 - Scanner Barra Elefante (Oliver Velez) - mercado US
-# 19 papeis US | 1m + 5m + 15m | Vela Elefante: corpo>=70% + corpo>=1.3*ATR(100) + filtro tendencia (SMA8)
+# velez_us_scan.ps1 - Scanner Trifecta (Oliver Velez, gatilho barra elefante) - mercado US
+# 19 papeis US | 2m + 5m + 15m | Vela Elefante: corpo>=70% + corpo>=1.3*ATR(100) + filtro tendencia (SMA8)
 # Logica exata do indicador "VELA ELEFANTE DE OLIVER VELEZ" (Dreadblitz, Pine v4).
 # Envio email+Telegram a cada 2h a partir da abertura da NYSE (9:30 ET): 9:45,11:45,13:45,15:45,17:45 ET.
 # Para email local: reaproveita .onda3_cred.xml (mesmo setup dos outros scanners).
@@ -13,7 +13,7 @@ $ATR_LEN  = 100     # periodo do ATR (CDBA)
 $SMA_FAST = 8       # media rapida para o filtro de tendencia
 $USE_FILTER = $true # CON FILTRADO DE TENDENCIA (so elefantes a favor da direcao da SMA rapida)
 # lookback (barras fechadas vasculhadas por TF, p/ nao perder elefante entre varreduras de 2h)
-$LB = @{ "1m"=30; "5m"=12; "15m"=8 }
+$LB = @{ "2m"=30; "5m"=12; "15m"=8 }
 
 function Get-SMA([double[]]$a,[int]$p){
     $n=$a.Length;$s=[double[]]::new($n);$sum=0.0
@@ -83,14 +83,14 @@ $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
 $dateFile=(Get-Date -Format "yyyyMMdd_HHmm")
 $hourNow=(Get-Date).Hour
 $readLabel=if($hourNow-lt 10){"Abertura"}elseif($hourNow-ge 16){"Fechamento"}else{"Intraday"}
-Write-Host "[$dateStr] Scanner Velez US (barra elefante) iniciado para $($tickers.Count) papeis... [$readLabel]"
+Write-Host "[$dateStr] Scanner Trifecta US (barra elefante) iniciado para $($tickers.Count) papeis... [$readLabel]"
 $timer=[System.Diagnostics.Stopwatch]::StartNew()
 
 $dlMap=@{}
 foreach($tk in $tickers){
     $sym=$tk.Y -replace '\^','%5E'
-    foreach($iv in @("1m","5m","15m")){
-        $rng=if($iv-eq"1m"){"5d"}elseif($iv-eq"5m"){"30d"}else{"60d"}
+    foreach($iv in @("2m","5m","15m")){
+        $rng=if($iv-eq"2m"){"10d"}elseif($iv-eq"5m"){"30d"}else{"60d"}
         $key="${iv}_$($tk.T)"
         $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
         $url="$baseUrl/$sym" + "?interval=$iv" + "&range=$rng" + "&includePrePost=false"
@@ -123,21 +123,21 @@ foreach($tk in $tickers){
     $t=$tk.T
     $ev=@{}
     $lastC=0.0
-    foreach($iv in @("1m","5m","15m")){
+    foreach($iv in @("2m","5m","15m")){
         $rd=$rawMap["${iv}_$t"]
         if($rd){
             $b=Build-OHLC $rd
             $ev[$iv]=Detect-Eleph $b.O $b.H $b.L $b.C $LB[$iv]
-            if($iv-eq"1m"-and$b.N-gt 0){$lastC=$b.C[$b.N-1]}
+            if($iv-eq"2m"-and$b.N-gt 0){$lastC=$b.C[$b.N-1]}
         }else{$ev[$iv]=@{Dir="NONE"}}
     }
     if($lastC-le 0){foreach($iv in @("5m","15m")){$rd=$rawMap["${iv}_$t"];if($rd-and$lastC-le 0){$b=Build-OHLC $rd;if($b.N-gt 0){$lastC=$b.C[$b.N-1]}}}}
-    $e1=$ev["1m"];$e5=$ev["5m"];$e15=$ev["15m"]
+    $e1=$ev["2m"];$e5=$ev["5m"];$e15=$ev["15m"]
     $cls=Classify $e1 $e5 $e15
     # elefante primaria p/ gatilho/stop: TF mais longo alinhado a direcao
     $prim=$null;$primTF=""
     if($cls.Dir-ne"NONE"){
-        foreach($pair in @(@($e15,"15m"),@($e5,"5m"),@($e1,"1m"))){ if($pair[0].Dir-eq$cls.Dir){$prim=$pair[0];$primTF=$pair[1];break} }
+        foreach($pair in @(@($e15,"15m"),@($e5,"5m"),@($e1,"2m"))){ if($pair[0].Dir-eq$cls.Dir){$prim=$pair[0];$primTF=$pair[1];break} }
     }
     $gat=0.0;$stp=0.0;$forca=0.0;$barsAgo=0;$riscoPct=0.0
     if($prim){
@@ -208,17 +208,17 @@ if($dqOpp.Count-gt 0){$dqLines+="<div style='margin-bottom:5px'><span style='col
 $dqLines+="<div><span style='color:#333;font-weight:700'>Resumo: </span>Alta=$nBull, Baixa=$nBear, Convergentes(>=2TF)=$nConv, Conflitos=$nOpp.</div>"
 $destaques="<div style='margin-top:14px;padding:12px 14px;background:#fbf7ef;border:1px solid #f0e2c8;border-radius:6px'><div style='font-size:11px;font-weight:700;color:#633806;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px'>Destaques da varredura</div><div style='font-size:11px;color:#333;line-height:1.7'>$($dqLines -join '')</div></div>"
 
-$htmlBody="<html><head><meta charset='UTF-8'><title>Scanner Barra Elefante US</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:820px;margin:0 auto;padding:16px'><table width='100%' style='background:#1e2b1e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>&#128024; Scanner Barra Elefante &mdash; EUA</span> <span style='background:#FAC775;color:#633806;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700'>$readLabel</span><br><span style='font-size:11px;color:#bfe3bf'>$dateStr | M&eacute;todo Oliver Velez | $($tickers.Count) pap&eacute;is US | 1m + 5m + 15m | corpo&ge;70% + &ge;1,3&times;ATR(100) + filtro SMA8</span></td><td style='text-align:right;vertical-align:top'><span style='background:#C0DD97;color:#27500A;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Alta: $nBull</span>&nbsp;<span style='background:#F7C1C1;color:#791F1F;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Baixa: $nBear</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:200px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>1m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>5m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>15m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:46px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:74px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:88px'>Gatilho</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:74px'>Stop</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:42px'>For&ccedil;a</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Barra Elefante &mdash;</strong> candle de corpo cheio (&ge;70% do range) e grande (&ge;1,3&times;ATR de 100 barras). &#128024;&#9650;=elefante de alta | &#128024;&#9660;=elefante de baixa. For&ccedil;a = corpo &divide; ATR (quanto maior, mais dominante).<br><strong>Filtro de tend&ecirc;ncia &mdash;</strong> s&oacute; conta o elefante a favor da dire&ccedil;&atilde;o da m&eacute;dia r&aacute;pida (SMA $SMA_FAST).<br><strong>Converg&ecirc;ncia &mdash;</strong> 3-TF=elefante mesma dire&ccedil;&atilde;o nos 3 tempos | 2-TF=em 2 | 1-TF=isolado | OPOSTO=tempos conflitantes.<br><strong>Opera&ccedil;&atilde;o (Oliver Velez) &mdash;</strong> Gatilho=rompimento do extremo da elefante (m&aacute;xima p/ compra, m&iacute;nima p/ venda) | Stop=extremo oposto da mesma barra. Aten&ccedil;&atilde;o: em elefantes grandes o stop fica largo.</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Scanner Barra Elefante (Oliver Velez) &mdash; EUA | Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
+$htmlBody="<html><head><meta charset='UTF-8'><title>Scanner Trifecta US</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:820px;margin:0 auto;padding:16px'><table width='100%' style='background:#1e2b1e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>&#128024; Scanner Trifecta &mdash; EUA</span> <span style='background:#FAC775;color:#633806;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700'>$readLabel</span><br><span style='font-size:11px;color:#bfe3bf'>$dateStr | Trifecta &middot; Barra Elefante (Oliver Velez) | $($tickers.Count) pap&eacute;is US | 2m + 5m + 15m | corpo&ge;70% + &ge;1,3&times;ATR(100) + filtro SMA8</span></td><td style='text-align:right;vertical-align:top'><span style='background:#C0DD97;color:#27500A;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Alta: $nBull</span>&nbsp;<span style='background:#F7C1C1;color:#791F1F;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Baixa: $nBear</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:200px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>2m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>5m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:34px'>15m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:46px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:74px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:88px'>Gatilho</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:74px'>Stop</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:42px'>For&ccedil;a</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Barra Elefante &mdash;</strong> candle de corpo cheio (&ge;70% do range) e grande (&ge;1,3&times;ATR de 100 barras). &#128024;&#9650;=elefante de alta | &#128024;&#9660;=elefante de baixa. For&ccedil;a = corpo &divide; ATR (quanto maior, mais dominante).<br><strong>Filtro de tend&ecirc;ncia &mdash;</strong> s&oacute; conta o elefante a favor da dire&ccedil;&atilde;o da m&eacute;dia r&aacute;pida (SMA $SMA_FAST).<br><strong>Converg&ecirc;ncia &mdash;</strong> 3-TF=elefante mesma dire&ccedil;&atilde;o nos 3 tempos | 2-TF=em 2 | 1-TF=isolado | OPOSTO=tempos conflitantes.<br><strong>Opera&ccedil;&atilde;o (Oliver Velez) &mdash;</strong> Gatilho=rompimento do extremo da elefante (m&aacute;xima p/ compra, m&iacute;nima p/ venda) | Stop=extremo oposto da mesma barra. Aten&ccedil;&atilde;o: em elefantes grandes o stop fica largo.</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Scanner Trifecta (Oliver Velez) &mdash; EUA | Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
 
 if($OutFile -ne ""){$htmlFile=$OutFile}else{$htmlFile=Join-Path $env:USERPROFILE "Downloads\velez_us_report_$dateFile.html"}
 $htmlBody|Out-File $htmlFile -Encoding UTF8
 Write-Host "HTML salvo: $htmlFile"
 if($OutFile -ne ""){
-    "[Velez US] $readLabel $dateStr ET | Alta:$nBull Baixa:$nBear" | Out-File "velez_us_subject.txt" -Encoding UTF8 -NoNewline;Write-Host "Subject: velez_us_subject.txt"
+    "[Trifecta US] $readLabel $dateStr ET | Alta:$nBull Baixa:$nBear" | Out-File "velez_us_subject.txt" -Encoding UTF8 -NoNewline;Write-Host "Subject: velez_us_subject.txt"
     $eE=[char]::ConvertFromUtf32(0x1F418);$eC=[char]::ConvertFromUtf32(0x1F7E2);$eV=[char]::ConvertFromUtf32(0x1F534);$eS=[char]::ConvertFromUtf32(0x1F4AA);$eX=[char]::ConvertFromUtf32(0x26A0);$eM=[char]::ConvertFromUtf32(0x1F4E7)
     $tg=@()
-    $tg+="<b>$eE Barra Elefante US ($readLabel) - $dateStr</b>"
-    $tg+="Metodo Oliver Velez | Alta: $nBull | Baixa: $nBear | Conflitos: $nOpp"
+    $tg+="<b>$eE Trifecta US ($readLabel) - $dateStr</b>"
+    $tg+="Trifecta (Oliver Velez) | Alta: $nBull | Baixa: $nBear | Conflitos: $nOpp"
     $tg+=""
     if($dqBull2.Count-gt 0){$tg+="$eC <b>Alta multi-TF:</b> $(JoinT ($dqBull2|ForEach-Object{ ""$($_.T) ($($_.Conv), entra US`$ $(([double]$_.Gat).ToString('N2',$enus)))"" }))"}
     if($dqBear2.Count-gt 0){$tg+="$eV <b>Baixa multi-TF:</b> $(JoinT ($dqBear2|ForEach-Object{ ""$($_.T) ($($_.Conv), entra US`$ $(([double]$_.Gat).ToString('N2',$enus)))"" }))"}
@@ -234,7 +234,7 @@ if(-not$SemEmail){
     if(Test-Path $credFile){
         try{
             $cred=Import-Clixml $credFile
-            $subject="[Velez US] $readLabel $dateStr ET | Alta:$nBull Baixa:$nBear"
+            $subject="[Trifecta US] $readLabel $dateStr ET | Alta:$nBull Baixa:$nBear"
             Send-MailMessage -From $cred.UserName -To "jjovieira@gmail.com" -Subject $subject -Body $htmlBody -BodyAsHtml -SmtpServer "smtp.gmail.com" -Port 587 -UseSsl -Credential $cred -Encoding UTF8
             Write-Host "[OK] Email enviado para jjovieira@gmail.com"
         }catch{Write-Host "[ERRO] Falha SMTP: $_"}
