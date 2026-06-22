@@ -73,7 +73,7 @@ $tickers=@(
     @{T="INTC";Y="INTC"},@{T="NVDA";Y="NVDA"},@{T="NFLX";Y="NFLX"},@{T="AMZN";Y="AMZN"},
     @{T="MU";Y="MU"},@{T="TSLA";Y="TSLA"},@{T="MSFT";Y="MSFT"},@{T="GOOG";Y="GOOG"},
     @{T="AMD";Y="AMD"},@{T="META";Y="META"},@{T="AAPL";Y="AAPL"},@{T="DELL";Y="DELL"},
-    @{T="SPX";Y="^GSPC"},@{T="XOM";Y="XOM"},@{T="JPM";Y="JPM"},@{T="V";Y="V"},
+    @{T="SPCX";Y="SPCX"},@{T="XOM";Y="XOM"},@{T="JPM";Y="JPM"},@{T="V";Y="V"},
     @{T="MA";Y="MA"},@{T="COST";Y="COST"},@{T="WMT";Y="WMT"}
 )
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
@@ -90,7 +90,7 @@ $dlMap=@{}
 foreach($tk in $tickers){
     $sym=$tk.Y -replace '\^','%5E'
     foreach($iv in @("1m","5m","15m")){
-        $rng=if($iv-eq"1m"){"7d"}elseif($iv-eq"5m"){"30d"}else{"60d"}
+        $rng=if($iv-eq"1m"){"5d"}elseif($iv-eq"5m"){"30d"}else{"60d"}
         $key="${iv}_$($tk.T)"
         $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
         $url="$baseUrl/$sym" + "?interval=$iv" + "&range=$rng" + "&includePrePost=false"
