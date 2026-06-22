@@ -24,17 +24,6 @@ jobs:
         id: meta
         run: echo "subject=$(cat onda3_subject.txt)" >> "$GITHUB_OUTPUT"
 
-      - name: Diagnostico de credenciais (NAO revela a senha)
-        run: |
-          echo "Tamanho do GMAIL_USER..........: ${#GU}  (esperado 19 para jjovieira@gmail.com)"
-          echo "Tamanho do GMAIL_APP_PASSWORD..: ${#GP}  (esperado 16, SEM espacos)"
-          if [ ${#GU} -eq 0 ]; then echo ">> PROBLEMA: GMAIL_USER esta VAZIO (nome do secret errado?)"; fi
-          if [ ${#GP} -eq 0 ]; then echo ">> PROBLEMA: GMAIL_APP_PASSWORD esta VAZIO (nome do secret errado?)"; fi
-          if [ ${#GP} -ne 16 ] && [ ${#GP} -ne 0 ]; then echo ">> ATENCAO: senha tem ${#GP} caracteres (se for 19, ha espacos; remova-os)"; fi
-        env:
-          GU: ${{ secrets.GMAIL_USER }}
-          GP: ${{ secrets.GMAIL_APP_PASSWORD }}
-
       - name: Enviar email
         uses: dawidd6/action-send-mail@v3
         with:
