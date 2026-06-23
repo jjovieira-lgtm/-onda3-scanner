@@ -1,15 +1,14 @@
 name: Onda 3 US Scan
 
-# Scanner Onda 3 (MIMA8/17/72 + Fractal72 + Fibonacci) - acoes americanas, timeframes 1m/5m/15m.
-# Agenda NY a prova de horario de verao: 9:33, 9:45, 11:45, 13:45, 15:45 e 17:45 ET.
-#   O cron ':33' cobre o relatorio de abertura (9:33 ET); o ':45' cobre os outros 5.
-#   cron-UNIAO em UTC (EDT e EST) + "gate" que so envia quando a hora de NY e 09/11/13/15/17.
+# Scanner Onda 3 (MIMA8/17/72 + Fractal72 + Fibonacci) - timeframes 1m/5m/15m - mercado US.
+# SOB DEMANDA desde a consolidacao (23/06/2026): roda via "Run workflow".
+# Para reativar a agenda automatica, descomente o schedule abaixo. SEM gate de hora (licao 23/06/2026:
+# o atraso do GitHub fazia o gate de DST bloquear o envio). Cron fixo no horario de verao de NY (EDT):
+#   9:33, 9:45, 11:45, 13:45, 15:45, 17:45 ET. No inverno (EST) some 1h em cada hora do cron.
 on:
-  # Agenda automatica DESATIVADA na consolidacao (23/06/2026): detalhe roda SOB DEMANDA (Run workflow).
-  # O Resumo de Convergencia US ja cobre o intraday. Para reativar, descomente abaixo (NY, a prova de DST):
-  #  schedule:
-  #    - cron: '33 13,14 * * 1-5'
-  #    - cron: '45 13,14,15,16,17,18,19,20,21,22 * * 1-5'
+  # schedule:
+  #   - cron: '33 13 * * 1-5'
+  #   - cron: '45 13,15,17,19,21 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -21,31 +20,15 @@ jobs:
       - name: Checkout do repositorio
         uses: actions/checkout@v4
 
-      - name: Gate de horario (hora de Nova Iorque)
-        id: gate
-        run: |
-          H=$(TZ=America/New_York date +%H)
-          EVENT="${{ github.event_name }}"
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            echo "send=true" >> "$GITHUB_OUTPUT"; echo "Disparo manual -> envia (ET hora=$H)"
-          elif [ "$H" = "09" ] || [ "$H" = "11" ] || [ "$H" = "13" ] || [ "$H" = "15" ] || [ "$H" = "17" ]; then
-            echo "send=true" >> "$GITHUB_OUTPUT"; echo "ET hora=$H -> dentro da janela, envia"
-          else
-            echo "send=false" >> "$GITHUB_OUTPUT"; echo "ET hora=$H -> fora da janela, ignora (no-op)"
-          fi
-
       - name: Rodar scan Onda 3 US (gera o relatorio HTML)
-        if: steps.gate.outputs.send == 'true'
         shell: pwsh
         run: ./onda3_us_scan.ps1 -SemEmail -OutFile onda3_us_report.html
 
       - name: Ler assunto do email
         id: meta
-        if: steps.gate.outputs.send == 'true'
         run: echo "subject=$(cat onda3_us_subject.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Enviar email
-        if: steps.gate.outputs.send == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -59,7 +42,6 @@ jobs:
           html_body: file://onda3_us_report.html
 
       - name: Enviar Telegram
-        if: steps.gate.outputs.send == 'true'
         run: |
           RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \

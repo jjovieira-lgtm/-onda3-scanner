@@ -1,18 +1,14 @@
 name: Trifecta US Scan (Oliver Velez)
 
-# Scanner Trifecta (Oliver Velez) - timeframes 2m/5m/15m, gatilho barra elefante - mercado americano (NYSE/Nasdaq).
-# Envio a cada 2h a partir da abertura (9:30 ET): 9:45, 11:45, 13:45, 15:45, 17:45 ET.
-#
-# A NYSE usa horario de verao (EDT=UTC-4 no verao, EST=UTC-5 no inverno), que o Brasil nao tem.
-# Para acertar o horario o ano todo SEM trocar o cron, disparamos na UNIAO dos horarios possiveis
-# (em UTC) e um "gate" so deixa enviar quando a hora LOCAL de Nova Iorque for 09/11/13/15/17.
-#   EDT: 13:45,15:45,17:45,19:45,21:45 UTC  |  EST: 14:45,16:45,18:45,20:45,22:45 UTC
+# Scanner Trifecta (Oliver Velez) - timeframes 2m/5m/15m, gatilho barra elefante - mercado US (NYSE/Nasdaq).
+# SOB DEMANDA desde a consolidacao (23/06/2026): roda via "Run workflow".
+# Para reativar a agenda automatica, descomente o schedule abaixo. SEM gate de hora (licao 23/06/2026:
+# o atraso do GitHub fazia o gate de DST bloquear o envio). Cron fixo no horario de verao de NY (EDT):
+#   9:33, 9:45, 11:45, 13:45, 15:45, 17:45 ET. No inverno (EST) some 1h em cada hora do cron.
 on:
-  # Agenda automatica DESATIVADA na consolidacao (23/06/2026): detalhe roda SOB DEMANDA (Run workflow).
-  # O Resumo de Convergencia US ja cobre o intraday. Para reativar, descomente abaixo (NY, a prova de DST):
-  #  schedule:
-  #    - cron: '33 13,14 * * 1-5'
-  #    - cron: '45 13,14,15,16,17,18,19,20,21,22 * * 1-5'
+  # schedule:
+  #   - cron: '33 13 * * 1-5'
+  #   - cron: '45 13,15,17,19,21 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -24,31 +20,15 @@ jobs:
       - name: Checkout do repositorio
         uses: actions/checkout@v4
 
-      - name: Gate de horario (hora de Nova Iorque)
-        id: gate
-        run: |
-          H=$(TZ=America/New_York date +%H)
-          EVENT="${{ github.event_name }}"
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            echo "send=true" >> "$GITHUB_OUTPUT"; echo "Disparo manual -> envia (ET hora=$H)"
-          elif [ "$H" = "09" ] || [ "$H" = "11" ] || [ "$H" = "13" ] || [ "$H" = "15" ] || [ "$H" = "17" ]; then
-            echo "send=true" >> "$GITHUB_OUTPUT"; echo "ET hora=$H -> dentro da janela, envia"
-          else
-            echo "send=false" >> "$GITHUB_OUTPUT"; echo "ET hora=$H -> fora da janela, ignora (no-op)"
-          fi
-
       - name: Rodar scan (gera o relatorio HTML)
-        if: steps.gate.outputs.send == 'true'
         shell: pwsh
         run: ./velez_us_scan.ps1 -SemEmail -OutFile velez_us_report.html
 
       - name: Ler assunto do email
         id: meta
-        if: steps.gate.outputs.send == 'true'
         run: echo "subject=$(cat velez_us_subject.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Enviar email
-        if: steps.gate.outputs.send == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -58,11 +38,10 @@ jobs:
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: ${{ steps.meta.outputs.subject }}
           to: jjovieira@gmail.com
-          from: Velez US Scanner <${{ secrets.GMAIL_USER }}>
+          from: Trifecta US Scanner <${{ secrets.GMAIL_USER }}>
           html_body: file://velez_us_report.html
 
       - name: Enviar Telegram
-        if: steps.gate.outputs.send == 'true'
         run: |
           RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
