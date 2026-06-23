@@ -1,12 +1,9 @@
-name: Trifecta US Scan (Oliver Velez)
+name: Onda 3 US Scan
 
-# Scanner Trifecta (Oliver Velez) - timeframes 2m/5m/15m, gatilho barra elefante - mercado americano (NYSE/Nasdaq).
-# Envio a cada 2h a partir da abertura (9:30 ET): 9:45, 11:45, 13:45, 15:45, 17:45 ET.
-#
-# A NYSE usa horario de verao (EDT=UTC-4 no verao, EST=UTC-5 no inverno), que o Brasil nao tem.
-# Para acertar o horario o ano todo SEM trocar o cron, disparamos na UNIAO dos horarios possiveis
-# (em UTC) e um "gate" so deixa enviar quando a hora LOCAL de Nova Iorque for 09/11/13/15/17.
-#   EDT: 13:45,15:45,17:45,19:45,21:45 UTC  |  EST: 14:45,16:45,18:45,20:45,22:45 UTC
+# Scanner Onda 3 (MIMA8/17/72 + Fractal72 + Fibonacci) - acoes americanas, timeframes 1m/5m/15m.
+# Agenda NY a prova de horario de verao: 9:33, 9:45, 11:45, 13:45, 15:45 e 17:45 ET.
+#   O cron ':33' cobre o relatorio de abertura (9:33 ET); o ':45' cobre os outros 5.
+#   cron-UNIAO em UTC (EDT e EST) + "gate" que so envia quando a hora de NY e 09/11/13/15/17.
 on:
   schedule:
     - cron: '33 13,14 * * 1-5'
@@ -35,15 +32,15 @@ jobs:
             echo "send=false" >> "$GITHUB_OUTPUT"; echo "ET hora=$H -> fora da janela, ignora (no-op)"
           fi
 
-      - name: Rodar scan (gera o relatorio HTML)
+      - name: Rodar scan Onda 3 US (gera o relatorio HTML)
         if: steps.gate.outputs.send == 'true'
         shell: pwsh
-        run: ./velez_us_scan.ps1 -SemEmail -OutFile velez_us_report.html
+        run: ./onda3_us_scan.ps1 -SemEmail -OutFile onda3_us_report.html
 
       - name: Ler assunto do email
         id: meta
         if: steps.gate.outputs.send == 'true'
-        run: echo "subject=$(cat velez_us_subject.txt)" >> "$GITHUB_OUTPUT"
+        run: echo "subject=$(cat onda3_us_subject.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Enviar email
         if: steps.gate.outputs.send == 'true'
@@ -56,15 +53,15 @@ jobs:
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: ${{ steps.meta.outputs.subject }}
           to: jjovieira@gmail.com
-          from: Velez US Scanner <${{ secrets.GMAIL_USER }}>
-          html_body: file://velez_us_report.html
+          from: Onda 3 US Scanner <${{ secrets.GMAIL_USER }}>
+          html_body: file://onda3_us_report.html
 
       - name: Enviar Telegram
         if: steps.gate.outputs.send == 'true'
         run: |
           RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-            --data-urlencode "text@velez_us_telegram.txt" \
+            --data-urlencode "text@onda3_us_telegram.txt" \
             --data-urlencode "parse_mode=HTML" \
             --data-urlencode "disable_web_page_preview=true")
           echo "Resposta Telegram: $RESP"

@@ -1,0 +1,51 @@
+name: Trifecta BR Scan (Oliver Velez)
+
+# Scanner Trifecta (Oliver Velez, gatilho barra elefante) - acoes brasileiras (B3), timeframes 2m/5m/15m.
+# Roda seg-sex a cada 2h a partir da abertura da B3 (10:00 BRT): 10:15, 12:15, 14:15, 16:15, 18:15 BRT.
+# BRT = UTC-3 (Brasil sem horario de verao), entao em UTC: 13:15, 15:15, 17:15, 19:15, 21:15.
+on:
+  schedule:
+    - cron: '15 13,15,17,19,21 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      - name: Rodar scan Trifecta BR (gera o relatorio HTML)
+        shell: pwsh
+        run: ./trifecta_br_scan.ps1 -SemEmail -OutFile trifecta_br_report.html
+
+      - name: Ler assunto do email
+        id: meta
+        run: echo "subject=$(cat trifecta_br_subject.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: ${{ steps.meta.outputs.subject }}
+          to: jjovieira@gmail.com
+          from: Trifecta BR Scanner <${{ secrets.GMAIL_USER }}>
+          html_body: file://trifecta_br_report.html
+
+      - name: Enviar Telegram
+        run: |
+          RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text@trifecta_br_telegram.txt" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true")
+          echo "Resposta Telegram: $RESP"
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
