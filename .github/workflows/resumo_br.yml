@@ -1,10 +1,13 @@
 name: Resumo Convergencia BR
 
 # Resumo sintetico que cruza Trifecta x Onda 3 - SO os destaques (convergencias + isolados fortes)
-# + noticias relevantes por ativo. Acoes BR. Mesma agenda B3: 10:15,12:15,14:15,16:15,18:15 BRT.
+# + noticias relevantes por ativo. Acoes BR. Agenda B3 (BRT): 09:00, 10:03, 12:15, 14:15, 16:15, 18:15.
+# 09:00 = pre-abertura (1h antes, noticias) | 10:03 = abertura+3min (1a barra elefante 2m fechada).
 on:
   schedule:
-    - cron: '15 13,15,17,19,21 * * 1-5'
+    - cron: '0 12 * * 1-5'            # 09:00 BRT (1h antes abertura B3, noticias pre-mercado)
+    - cron: '3 13 * * 1-5'            # 10:03 BRT (abertura+3min, captura 1a barra elefante 2m)
+    - cron: '15 15,17,19,21 * * 1-5'  # 12:15, 14:15, 16:15, 18:15 BRT
   workflow_dispatch:
 
 jobs:
