@@ -1,15 +1,14 @@
-name: Onda3 Intraday Scan
+name: Onda3 Day Trade Scan
 
-# Foco intradiario/semanal (timeframes 1m + 5m + 15m).
-# Roda de segunda a sexta a cada 2h a partir da abertura da B3 (10:00 BRT):
-#   10:15, 12:15, 14:15, 16:15 e 18:15 (fechamento da leitura) BRT.
-# BRT = UTC-3, entao em UTC: 13:15, 15:15, 17:15, 19:15, 21:15.
-# Tambem pode ser disparado manualmente pelo botao "Run workflow".
+# Scanner Day Trade - Onda 3 (timeframes 1m + 5m + 15m). Acoes BR (B3).
+# Hora em hora, seg-sex, mesmo padrao do Resumo Convergencia BR:
+#   09:00 BRT (pre-abertura) | 10:03 BRT (abertura+3min) | 11:00 a 18:00 BRT.
+# BRT = UTC-3. Cron em UTC.
 on:
-  # Agenda automatica DESATIVADA na consolidacao (23/06/2026): detalhe roda SOB DEMANDA (Run workflow).
-  # O Resumo de Convergencia BR ja cobre o intraday. Para reativar, descomente abaixo (B3 10:15-18:15 BRT):
-  #  schedule:
-  #    - cron: '15 13,15,17,19,21 * * 1-5'
+  schedule:
+    - cron: '0 12 * * 1-5'                        # 09:00 BRT (pre-abertura B3)
+    - cron: '3 13 * * 1-5'                        # 10:03 BRT (abertura+3min)
+    - cron: '0 14,15,16,17,18,19,20,21 * * 1-5'  # 11:00 a 18:00 BRT (hora em hora)
   workflow_dispatch:
 
 jobs:
@@ -39,7 +38,7 @@ jobs:
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: ${{ steps.meta.outputs.subject }}
           to: jjovieira@gmail.com
-          from: Onda3 Intraday Scanner <${{ secrets.GMAIL_USER }}>
+          from: Onda3 Day Trade Scanner <${{ secrets.GMAIL_USER }}>
           html_body: file://onda3_intraday_report.html
 
       - name: Enviar Telegram

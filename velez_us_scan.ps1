@@ -86,7 +86,7 @@ $enus=[System.Globalization.CultureInfo]::GetCultureInfo("en-US")
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
 $dateFile=(Get-Date -Format "yyyyMMdd_HHmm")
 $hourNow=(Get-Date).Hour
-$readLabel=if($hourNow-lt 9){"Pre-Abertura"}elseif($hourNow-lt 10){"Abertura"}elseif($hourNow-ge 16){"Fechamento"}else{"Intraday"}
+$readLabel=if($hourNow-lt 9){"Pre-Abertura"}elseif($hourNow-lt 10){"Abertura"}elseif($hourNow-ge 16){"Fechamento"}else{"Day Trade"}
 Write-Host "[$dateStr] Scanner Trifecta US (barra elefante) iniciado para $($tickers.Count) papeis... [$readLabel]"
 $timer=[System.Diagnostics.Stopwatch]::StartNew()
 

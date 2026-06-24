@@ -1,10 +1,11 @@
-name: Onda3 Daily Scan
+name: Onda3 SWING TRADE Scan
 
-# Roda de segunda a sexta as 22:00 UTC = 19:00 BRT (Brasil, UTC-3).
-# Tambem pode ser disparado manualmente pelo botao "Run workflow".
+# Scanner Swing Trade - Onda 3 (D + 2h + 30m). Acoes BR (B3).
+# A cada 2 horas a partir das 09:00 BRT, seg-sex:
+#   09:00, 11:00, 13:00, 15:00, 17:00, 19:00 BRT = 12:00, 14:00, 16:00, 18:00, 20:00, 22:00 UTC.
 on:
   schedule:
-    - cron: '0 22 * * 1-5'
+    - cron: '0 12,14,16,18,20,22 * * 1-5'  # 09:00, 11:00, 13:00, 15:00, 17:00, 19:00 BRT
   workflow_dispatch:
 
 jobs:
@@ -34,7 +35,7 @@ jobs:
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           subject: ${{ steps.meta.outputs.subject }}
           to: jjovieira@gmail.com
-          from: Onda3 Scanner <${{ secrets.GMAIL_USER }}>
+          from: Onda3 SWING TRADE <${{ secrets.GMAIL_USER }}>
           html_body: file://onda3_report.html
 
       - name: Enviar Telegram
