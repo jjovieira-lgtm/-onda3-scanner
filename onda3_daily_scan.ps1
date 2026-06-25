@@ -71,6 +71,34 @@ $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
 $dateFile=(Get-Date -Format "yyyyMMdd_HHmm")
+
+# Dados oficiais de fechamento B3 (COTAHIST) - disponiveis apos ~18:30 BRT
+# Substitui o ultimo candle diario pelo preco oficial da B3 quando disponivel.
+function Get-B3Cotahist([string[]]$tk){
+    $ds=(Get-Date -Format "ddMMyyyy")
+    $url="https://bvmf.bmfbovespa.com.br/InstDados/SerHist/COTAHIST_D$ds.ZIP"
+    try{
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
+        $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
+        $zb=$wc.DownloadData($url)
+        $ms=[System.IO.MemoryStream]::new($zb)
+        $zip=[System.IO.Compression.ZipArchive]::new($ms,[System.IO.Compression.ZipArchiveMode]::Read)
+        $rdr=[System.IO.StreamReader]::new($zip.Entries[0].Open(),[System.Text.Encoding]::GetEncoding(1252))
+        $r=@{}
+        while($null-ne($ln=$rdr.ReadLine())){
+            if($ln.Length-lt 245){continue}
+            if($ln.Substring(0,2)-ne"01"){continue}  # tipo 01 = acoes
+            if($ln.Substring(24,3)-ne"010"){continue} # mercado a vista
+            $code=$ln.Substring(12,12).Trim()
+            if($tk -notcontains $code){continue}
+            $r[$code]=@{O=[double]::Parse($ln.Substring(56,13))/100.0;H=[double]::Parse($ln.Substring(69,13))/100.0;L=[double]::Parse($ln.Substring(82,13))/100.0;C=[double]::Parse($ln.Substring(108,13))/100.0}
+        }
+        $rdr.Dispose();$zip.Dispose();$ms.Dispose()
+        Write-Host "B3 COTAHIST: $($r.Count)/$($tk.Count) papeis carregados"
+        return $r
+    }catch{Write-Host "B3 COTAHIST indisponivel (normal antes das 18:30 BRT)";return $null}
+}
+
 Write-Host "[$dateStr] Scan 3-TF iniciado para $($tickers.Count) papeis..."
 $timer=[System.Diagnostics.Stopwatch]::StartNew()
 
@@ -93,6 +121,10 @@ $timer.Stop()
 $okCount=($rawMap.Keys|Where-Object{$rawMap[$_]-ne$null}).Count
 Write-Host "Download: $($timer.Elapsed.TotalSeconds.ToString("F1"))s | $okCount ok"
 
+# Tenta B3 COTAHIST pos-mercado (>= 18:00 BRT) para substituir ultimo candle diario
+$b3Map=$null
+if((Get-Date).Hour -ge 18){$b3Map=Get-B3Cotahist $tickers}
+
 $DailyR=@{};$H2R=@{};$M30R=@{}
 foreach($t in $tickers){
     $rk="1d_$t"
@@ -101,6 +133,8 @@ foreach($t in $tickers){
             $aC[$i]=if($null-eq$cv-or[double]$cv-le 0){if($i-gt 0){$aC[$i-1]}else{0.0}}else{[double]$cv}
             $aHH[$i]=if($null-eq$hv-or[double]$hv-le 0){$aC[$i]}else{[double]$hv}
             $aLL[$i]=if($null-eq$lv-or[double]$lv-le 0){$aC[$i]}else{[double]$lv}}
+        # Substitui ultimo candle pelo fechamento oficial da B3 se disponivel
+        if($b3Map -and $b3Map[$t] -and $nn-gt 0){$bd=$b3Map[$t];$aC[$nn-1]=$bd.C;$aHH[$nn-1]=[Math]::Max($aHH[$nn-1],$bd.H);$aLL[$nn-1]=[Math]::Min($aLL[$nn-1],$bd.L)}
         $DailyR[$t]=Proc-Bars $aC $aHH $aLL}else{$DailyR[$t]=$null}
     $rk="1h_$t"
     if($rawMap[$rk]){$rd=$rawMap[$rk];$agg=Agg-2h $rd.ts $rd.q $rd.n
