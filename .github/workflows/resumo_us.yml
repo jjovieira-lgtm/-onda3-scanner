@@ -1,17 +1,16 @@
 name: Resumo Convergencia US
 
 # Resumo sintetico que cruza Trifecta x Onda 3 - SO os destaques + noticias - acoes US.
-# Horarios de Nova Iorque (verao/EDT): 8:30, 9:33, 10:30-17:30 (hora em hora).
-# 8:30 = pre-abertura (1h antes, noticias) | 9:33 = abertura+3min (1a barra elefante 2m fechada).
+# Horarios de Nova Iorque (verao/EDT): 8:37, 9:33, 10:37-17:37 (hora em hora).
+# 8:37 = pre-abertura | 9:33 = abertura+3min (1a barra 2m fechada). Minutos escalonados p/ evitar fila.
 #
-# SEM "gate" de hora (removido em 23/06/2026): cron fixo no horario de verao (EDT = UTC-4),
-# todo disparo envia. No inverno (EST, ~nov-mar) sair 1h mais cedo em ET;
-# para corrigir nesse periodo, somar 1h nas horas UTC do cron (ex.: 14 vira 15, etc.).
+# SEM "gate" de hora: cron fixo no horario de verao (EDT = UTC-4), todo disparo envia.
+# No inverno (EST, ~nov-mar) somar 1h nas horas UTC do cron (ex.: 14 vira 15, etc.).
 on:
   schedule:
-    - cron: '30 12 * * 1-5'                        # 8:30 ET (pre-abertura NYSE)
+    - cron: '37 12 * * 1-5'                        # 8:37 ET (pre-abertura NYSE)
     - cron: '33 13 * * 1-5'                        # 9:33 ET (abertura+3min)
-    - cron: '30 14,15,16,17,18,19,20,21 * * 1-5'  # 10:30 a 17:30 ET (hora em hora)
+    - cron: '37 14,15,16,17,18,19,20,21 * * 1-5'  # 10:37 a 17:37 ET (hora em hora)
   workflow_dispatch:
 
 jobs:
@@ -34,8 +33,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
           git add signals/ 2>/dev/null || true
-          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) resumo_us" && git pull --rebase && git push)
+          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) resumo_us" && git pull --rebase origin HEAD || true && git push origin HEAD)
 
       - name: Ler assunto do email
         id: meta

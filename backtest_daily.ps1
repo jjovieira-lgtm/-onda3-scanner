@@ -86,8 +86,10 @@ function TableSection($entries, $title, $color, $ccy) {
 }
 
 # ======================== MAIN ========================
-$now      = Get-Date
-$todayBRT = $now.Date   # TZ=America/Sao_Paulo no workflow; hora local aqui
+# BRT = UTC-3, sem horario de verao desde 2019. Calcular explicitamente para
+# evitar comportamento instavel do Get-Date com TZ= no pwsh do Ubuntu.
+$now      = [DateTime]::UtcNow.AddHours(-3)
+$todayBRT = $now.Date
 $sigTD    = Prev-TradingDay $todayBRT
 $sigDate  = $sigTD.ToString("yyyyMMdd")
 $todayStr = $todayBRT.ToString("yyyy-MM-dd")

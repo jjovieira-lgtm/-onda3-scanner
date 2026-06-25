@@ -5,11 +5,7 @@ name: Trifecta US Scan (Oliver Velez)
 #   8:30 ET (pre-abertura NYSE) | 9:33 ET (abertura+3min) | 10:30 a 17:30 ET.
 # No inverno (EST, ~nov-mar) somar 1h nas horas UTC do cron.
 on:
-  schedule:
-    - cron: '30 12 * * 1-5'                        # 8:30 ET (pre-abertura NYSE)
-    - cron: '33 13 * * 1-5'                        # 9:33 ET (abertura+3min)
-    - cron: '30 14,15,16,17,18,19,20,21 * * 1-5'  # 10:30 a 17:30 ET (hora em hora)
-  workflow_dispatch:
+  workflow_dispatch:  # Sob demanda apenas (agendamento automatico desativado para nao congestionar a fila)
 
 jobs:
   scan:

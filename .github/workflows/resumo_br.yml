@@ -1,13 +1,13 @@
 name: Resumo Convergencia BR
 
 # Resumo sintetico que cruza Trifecta x Onda 3 - SO os destaques (convergencias + isolados fortes)
-# + noticias relevantes por ativo. Acoes BR. Agenda B3 (BRT): 09:00, 10:03, 11:00-18:00 (cada hora).
-# 09:00 = pre-abertura (1h antes, noticias) | 10:03 = abertura+3min (1a barra elefante 2m fechada).
+# + noticias relevantes por ativo. Acoes BR. Agenda B3 (BRT): 09:11, 10:03, 11:11-18:11 (cada hora).
+# 09:11 = pre-abertura | 10:03 = abertura+3min (1a barra 2m fechada). Minutos escalonados p/ evitar fila.
 on:
   schedule:
-    - cron: '0 12 * * 1-5'                        # 09:00 BRT (pre-abertura B3)
+    - cron: '11 12 * * 1-5'                        # 09:11 BRT (pre-abertura B3)
     - cron: '3 13 * * 1-5'                        # 10:03 BRT (abertura+3min)
-    - cron: '0 14,15,16,17,18,19,20,21 * * 1-5'  # 11:00 a 18:00 BRT (hora em hora)
+    - cron: '11 14,15,16,17,18,19,20,21 * * 1-5'  # 11:11 a 18:11 BRT (hora em hora)
   workflow_dispatch:
 
 jobs:
@@ -30,8 +30,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
           git add signals/ 2>/dev/null || true
-          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) resumo_br" && git pull --rebase && git push)
+          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) resumo_br" && git pull --rebase origin HEAD || true && git push origin HEAD)
 
       - name: Ler assunto do email
         id: meta

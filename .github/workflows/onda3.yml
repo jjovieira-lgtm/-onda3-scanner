@@ -1,11 +1,12 @@
 name: Onda3 SWING TRADE Scan
 
 # Scanner Swing Trade - Onda 3 (D + 2h + 30m). Acoes BR (B3).
-# A cada 2 horas a partir das 09:00 BRT, seg-sex:
-#   09:00, 11:00, 13:00, 15:00, 17:00, 19:00 BRT = 12:00, 14:00, 16:00, 18:00, 20:00, 22:00 UTC.
+# A cada 2 horas a partir das 09:17 BRT, seg-sex:
+#   09:17, 11:17, 13:17, 15:17, 17:17, 19:17 BRT = 12:17, 14:17, 16:17, 18:17, 20:17, 22:17 UTC.
+# Minutos escalonados (17 ao inves de 00) para fugir do congestionamento do GitHub Actions.
 on:
   schedule:
-    - cron: '0 12,14,16,18,20,22 * * 1-5'  # 09:00, 11:00, 13:00, 15:00, 17:00, 19:00 BRT
+    - cron: '17 12,14,16,18,20,22 * * 1-5'  # 09:17, 11:17, 13:17, 15:17, 17:17, 19:17 BRT
   workflow_dispatch:
 
 jobs:
@@ -28,8 +29,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
           git add signals/ 2>/dev/null || true
-          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) onda3" && git pull --rebase && git push)
+          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) onda3" && git pull --rebase origin HEAD || true && git push origin HEAD)
 
       - name: Ler assunto do email
         id: meta
