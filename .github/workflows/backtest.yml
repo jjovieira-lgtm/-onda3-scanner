@@ -1,0 +1,75 @@
+name: Backtest Diario
+
+# Roda 23h BRT (02h UTC) apos fechamento de B3 e NYSE, seg-sex.
+# Mapeamento: Ter 02:00 UTC = Seg 23:00 BRT -> valida sinais de Sex
+#             Qua 02:00 UTC = Ter 23:00 BRT -> valida sinais de Seg
+#             Qui/Sex/Sab 02:00 UTC -> valida Ter/Qua/Qui respectivamente
+on:
+  schedule:
+    - cron: '0 2 * * 2-6'   # Ter-Sab 02:00 UTC = Seg-Sex 23:00 BRT
+  workflow_dispatch:
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rodar backtest
+        shell: pwsh
+        run: ./backtest_daily.ps1 -SemEmail -OutFile backtest_report.html
+
+      - name: Commitar backtest log
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backtest_log.json
+          if git diff --cached --quiet; then
+            echo "Sem alteracoes no log."
+          else
+            git commit -m "backtest: $(date -u +%Y-%m-%d)"
+            git pull --rebase && git push
+          fi
+
+      - name: Ler assunto
+        id: meta
+        run: |
+          if [ -f backtest_subject.txt ]; then
+            echo "subject=$(cat backtest_subject.txt)" >> "$GITHUB_OUTPUT"
+          else
+            echo "subject=[Backtest] Sem sinais" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enviar email
+        if: ${{ hashFiles('backtest_report.html') != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: ${{ steps.meta.outputs.subject }}
+          to: jjovieira@gmail.com
+          from: Backtest Scanner <${{ secrets.GMAIL_USER }}>
+          html_body: file://backtest_report.html
+
+      - name: Enviar Telegram
+        if: ${{ hashFiles('backtest_telegram.txt') != '' }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text@backtest_telegram.txt" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true"
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
