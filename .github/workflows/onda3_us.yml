@@ -10,6 +10,8 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       TZ: America/New_York
     steps:
@@ -19,6 +21,15 @@ jobs:
       - name: Rodar scan Onda 3 US (gera o relatorio HTML)
         shell: pwsh
         run: ./onda3_us_scan.ps1 -SemEmail -OutFile onda3_us_report.html
+
+      - name: Salvar sinais para backtest
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
+          git add signals/ 2>/dev/null || true
+          git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) onda3_us" && git pull --rebase origin HEAD || true && git push origin HEAD)
 
       - name: Ler assunto do email
         id: meta

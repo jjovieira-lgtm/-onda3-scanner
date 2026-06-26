@@ -209,6 +209,9 @@ $htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 Scanner DAY TRADE</
 if($OutFile -ne ""){ $htmlFile = $OutFile } else { $htmlFile = Join-Path $env:USERPROFILE "Downloads\onda3_intraday_report_$dateFile.html" }
 $htmlBody | Out-File $htmlFile -Encoding UTF8
 Write-Host "HTML salvo: $htmlFile"
+$bkDate=(Get-Date -Format "yyyyMMdd")
+$bkSigs=@($sorted|Where-Object{$_.D-ne"NONE"}|ForEach-Object{[PSCustomObject]@{t=$_.T;d=$_.D;c=$_.C;s=$_.S;lc=[Math]::Round([double]$_.LC,2);obs=$_.OBS;st=[int]($_.ST-ne 0)}})
+if($bkSigs.Count-gt 0){New-Item -ItemType Directory -Path "signals" -Force|Out-Null;($bkSigs|ConvertTo-Json -Compress)|Out-File "signals/signals_${bkDate}_onda3_intraday.json" -Encoding UTF8 -NoNewline;Write-Host "Sinais backtest: signals/signals_${bkDate}_onda3_intraday.json ($($bkSigs.Count))"}
 if($OutFile -ne ""){
     "[Onda3 DAY TRADE] $readLabel $dateStr | 2-TF:$n2tf | 1-TF:$n1tf" | Out-File "onda3_intraday_subject.txt" -Encoding UTF8 -NoNewline; Write-Host "Subject: onda3_intraday_subject.txt"
     $ptbr=[System.Globalization.CultureInfo]::GetCultureInfo("pt-BR")

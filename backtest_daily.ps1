@@ -1,9 +1,10 @@
-# backtest_daily.ps1 - Valida sinais D-1 vs fechamento de hoje. Grava log acumulado.
+﻿# backtest_daily.ps1 - Valida sinais D-1 vs fechamento de hoje. Grava log acumulado.
 # Uso: ./backtest_daily.ps1 -SemEmail -OutFile backtest_report.html
 param([switch]$SemEmail, [string]$OutFile="")
 $ErrorActionPreference = "SilentlyContinue"
 
 $ptbr = [System.Globalization.CultureInfo]::GetCultureInfo("pt-BR")
+. "$PSScriptRoot\backtest_analise.ps1"
 $uaStr = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 function Prev-TradingDay([DateTime]$d) {
@@ -30,9 +31,9 @@ function Calc-Score($entries) {
 function Agg-Log($log, $nDays) {
     $recent = @($log | Sort-Object date -Descending | Select-Object -First $nDays)
     if ($recent.Count -eq 0) { return $null }
-    $tot = @{ onda3_diario=@{c=0;w=0;n=0;t=0}; resumo_br=@{c=0;w=0;n=0;t=0}; resumo_us=@{c=0;w=0;n=0;t=0}; trifecta_br=@{c=0;w=0;n=0;t=0}; trifecta_us=@{c=0;w=0;n=0;t=0} }
+    $tot = @{ onda3_diario=@{c=0;w=0;n=0;t=0}; resumo_br=@{c=0;w=0;n=0;t=0}; resumo_us=@{c=0;w=0;n=0;t=0}; trifecta_br=@{c=0;w=0;n=0;t=0}; trifecta_us=@{c=0;w=0;n=0;t=0}; onda3_intraday=@{c=0;w=0;n=0;t=0}; onda3_us=@{c=0;w=0;n=0;t=0} }
     foreach ($e in $recent) {
-        foreach ($s in @("onda3_diario","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
+        foreach ($s in @("onda3_diario","resumo_br","resumo_us","trifecta_br","trifecta_us","onda3_intraday","onda3_us")) {
             $sc = $e.scores.$s
             if ($sc) { $tot[$s].c+=$sc.c; $tot[$s].w+=$sc.w; $tot[$s].n+=$sc.n; $tot[$s].t+=$sc.t }
         }
@@ -60,8 +61,8 @@ function ScoreBar($sc, $label) {
 function AggBlock($agg, $title, $icon) {
     if (-not $agg -or $agg.days -eq 0) { return "" }
     $rows = ""
-    foreach ($s in @("onda3_diario","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
-        $nm = @{onda3_diario="Onda 3 Diario"; resumo_br="Resumo BR"; resumo_us="Resumo US"; trifecta_br="Trifecta BR"; trifecta_us="Trifecta US"}[$s]
+    foreach ($s in @("onda3_diario","onda3_intraday","onda3_us","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
+        $nm = @{onda3_diario="Onda 3 Diario (Swing)"; onda3_intraday="Onda 3 Day Trade BR"; onda3_us="Onda 3 Day Trade US"; resumo_br="Resumo BR"; resumo_us="Resumo US"; trifecta_br="Trifecta BR"; trifecta_us="Trifecta US"}[$s]
         $sc = $agg.scores[$s]; if (-not $sc) { continue }
         $pc = if ($sc.pct -ge 60){"#1a7a3a"}elseif($sc.pct -ge 40){"#b7600a"}else{"#c0392b"}
         $rows += "<tr><td style='padding:3px 8px;font-size:11px'>$nm</td><td style='padding:3px 8px;font-weight:700;color:$pc;text-align:right'>$($sc.pct.ToString('N1',$ptbr))%</td><td style='padding:3px 8px;color:#888;font-size:10px'>$($sc.c)&#10003; $($sc.w)&#10007; $($sc.n)~</td><td style='padding:3px 8px;color:#888;font-size:10px'>$($sc.t) sinais</td></tr>"
@@ -100,9 +101,11 @@ $validStr  = $validDate.ToString("yyyy-MM-dd")
 Write-Host "[$dateStr] Backtest: sinais=$sigDate fechamento-validado=$validStr gerado-em=$todayStr"
 
 # Ler sinais de D-1 (pregao anterior)
-$fO3  = "signals/signals_${sigDate}_onda3.json"
-$fBR  = "signals/signals_${sigDate}_resumo_br.json"
-$fUS  = "signals/signals_${sigDate}_resumo_us.json"
+$fO3      = "signals/signals_${sigDate}_onda3.json"
+$fBR      = "signals/signals_${sigDate}_resumo_br.json"
+$fUS      = "signals/signals_${sigDate}_resumo_us.json"
+$fO3Intra = "signals/signals_${sigDate}_onda3_intraday.json"
+$fO3US    = "signals/signals_${sigDate}_onda3_us.json"
 function Read-SignalFile($path) {
     if (-not (Test-Path $path)) { return @() }
     try {
@@ -111,20 +114,22 @@ function Read-SignalFile($path) {
         return @($parsed | ForEach-Object { $_ })
     } catch { return @() }
 }
-$sigO3 = Read-SignalFile $fO3
-$sigBR = Read-SignalFile $fBR
-$sigUS = Read-SignalFile $fUS
+$sigO3      = Read-SignalFile $fO3
+$sigBR      = Read-SignalFile $fBR
+$sigUS      = Read-SignalFile $fUS
+$sigO3Intra = Read-SignalFile $fO3Intra
+$sigO3US    = Read-SignalFile $fO3US
 
-if ($sigO3.Count + $sigBR.Count + $sigUS.Count -eq 0) {
+if ($sigO3.Count + $sigBR.Count + $sigUS.Count + $sigO3Intra.Count + $sigO3US.Count -eq 0) {
     Write-Host "AVISO: Nenhum sinal em signals/*${sigDate}*.json. Encerrando."
     exit 0
 }
-Write-Host "Sinais: Onda3=$($sigO3.Count) BR=$($sigBR.Count) US=$($sigUS.Count)"
+Write-Host "Sinais: Onda3=$($sigO3.Count) BR=$($sigBR.Count) US=$($sigUS.Count) O3Intra=$($sigO3Intra.Count) O3US=$($sigO3US.Count)"
 
 # Download precos Yahoo Finance v8 com crumb (obrigatorio desde 2023)
 $allSyms = @()
-foreach ($s in @($sigO3) + @($sigBR)) { if ($s.t) { $allSyms += "$($s.t).SA" } }
-foreach ($s in $sigUS)                  { if ($s.t) { $allSyms += $s.t } }
+foreach ($s in @($sigO3) + @($sigBR) + @($sigO3Intra)) { if ($s.t) { $allSyms += "$($s.t).SA" } }
+foreach ($s in @($sigUS) + @($sigO3US))                 { if ($s.t) { $allSyms += $s.t } }
 $allSyms = @($allSyms | Select-Object -Unique)
 Write-Host "Baixando $($allSyms.Count) precos (com crumb)..."
 
@@ -177,22 +182,24 @@ function Eval-Entries($signals, $isBR, $pmap) {
 }
 
 # Todas as estrategias: valida sinais de D-1 vs fechamento de D (sessao atual)
-# Onda3 swing: lc = ultimo candle diario (24/06) vs D (hoje) = move de 2 sessoes
-# Resumo BR/US: lc = ultimo candle 30m EOD de D-1 vs D (hoje) = move de 1 sessao
-$o3Entries  = Eval-Entries $sigO3 $true  $priceMapD
-$brEntries  = Eval-Entries $sigBR $true  $priceMapD
-$usEntries  = Eval-Entries $sigUS $false $priceMapD
+$o3Entries      = Eval-Entries $sigO3      $true  $priceMapD
+$brEntries      = Eval-Entries $sigBR      $true  $priceMapD
+$usEntries      = Eval-Entries $sigUS      $false $priceMapD
+$o3IntraEntries = Eval-Entries $sigO3Intra $true  $priceMapD
+$o3USEntries    = Eval-Entries $sigO3US    $false $priceMapD
 
 # Derivar entradas Trifecta (v = CONVERGENTE ou SO-TRIFECTA significa que o Trifecta estava ativo)
 $trifBREntries = @($brEntries | Where-Object { $_.verdict -eq "CONVERGENTE" -or $_.verdict -eq "SO-TRIFECTA" })
 $trifUSEntries = @($usEntries | Where-Object { $_.verdict -eq "CONVERGENTE" -or $_.verdict -eq "SO-TRIFECTA" })
 
-$scO3     = Calc-Score $o3Entries
-$scBR     = Calc-Score $brEntries
-$scUS     = Calc-Score $usEntries
-$scTrifBR = Calc-Score $trifBREntries
-$scTrifUS = Calc-Score $trifUSEntries
-Write-Host "Scores: O3=$($scO3.pct)% BR=$($scBR.pct)% US=$($scUS.pct)% TrifBR=$($scTrifBR.pct)% TrifUS=$($scTrifUS.pct)%"
+$scO3       = Calc-Score $o3Entries
+$scBR       = Calc-Score $brEntries
+$scUS       = Calc-Score $usEntries
+$scTrifBR   = Calc-Score $trifBREntries
+$scTrifUS   = Calc-Score $trifUSEntries
+$scO3Intra  = Calc-Score $o3IntraEntries
+$scO3US     = Calc-Score $o3USEntries
+Write-Host "Scores: O3=$($scO3.pct)% BR=$($scBR.pct)% US=$($scUS.pct)% TrifBR=$($scTrifBR.pct)% TrifUS=$($scTrifUS.pct)% O3Intra=$($scO3Intra.pct)% O3US=$($scO3US.pct)%"
 
 # Ler/Atualizar log persistido
 $logFile = "backtest_log.json"
@@ -202,7 +209,7 @@ $log = @($log | Where-Object { $_.date -ne $todayStr })
 $logEntry = [PSCustomObject]@{
     date=$todayStr; signal_date=$sigDate
     n=[PSCustomObject]@{ o3=$o3Entries.Count; br=$brEntries.Count; us=$usEntries.Count; trifbr=$trifBREntries.Count; trifus=$trifUSEntries.Count }
-    scores=[PSCustomObject]@{ onda3_diario=$scO3; resumo_br=$scBR; resumo_us=$scUS; trifecta_br=$scTrifBR; trifecta_us=$scTrifUS }
+    scores=[PSCustomObject]@{ onda3_diario=$scO3; resumo_br=$scBR; resumo_us=$scUS; trifecta_br=$scTrifBR; trifecta_us=$scTrifUS; onda3_intraday=$scO3Intra; onda3_us=$scO3US }
     entries=@(
         @($o3Entries | Select-Object @{n="strat";e={"onda3_diario"}},t,dir,conv,obs,@{n="verdict";e={$null}},sp,vp,pct,res) +
         @($brEntries | Select-Object @{n="strat";e={"resumo_br"}},t,dir,@{n="conv";e={$null}},@{n="obs";e={$null}},verdict,sp,vp,pct,res) +
@@ -221,89 +228,25 @@ $hasWeekly   = $wk5   -and $wk5.days   -ge 3
 $hasBiweekly = $bwk10 -and $bwk10.days -ge 8
 
 # ---- Montar HTML ----
-$totalSinais = $o3Entries.Count + $brEntries.Count + $usEntries.Count
+$totalSinais = $o3Entries.Count + $o3IntraEntries.Count + $o3USEntries.Count + $brEntries.Count + $usEntries.Count
 
 $dLabel = $sigTD.ToString('dd/MM')
-$secO3     = TableSection $o3Entries     "Onda 3 SWING TRADE (Diario) — sinal $dLabel vs fechamento $($todayBRT.ToString('dd/MM'))"        "#1a1a2e" "R$ "
-$secBR     = TableSection $brEntries     "Resumo Convergencia BR — day trade $dLabel (abertura vs fechamento)" "#2a1e3e" "R$ "
-$secUS     = TableSection $usEntries     "Resumo Convergencia US — day trade $dLabel (abertura vs fechamento)" "#1e3e2a" "US$ "
-$secTrifBR = TableSection $trifBREntries "Trifecta BR (Convergente+Exclusivo) — day trade $dLabel"  "#2a3e1e" "R$ "
-$secTrifUS = TableSection $trifUSEntries "Trifecta US (Convergente+Exclusivo) — day trade $dLabel"  "#1e2e3e" "US$ "
-$secWk     = if ($hasWeekly)   { AggBlock $wk5   "Resumo Semanal (ultimas 5 sessoes)"    "&#128197;" } else { "" }
-$secBwk    = if ($hasBiweekly) { AggBlock $bwk10 "Resumo Quinzenal (ultimas 10 sessoes)" "&#128198;" } else { "" }
+$dNext  = $todayBRT.ToString('dd/MM')
+$secO3      = TableSection $o3Entries      "Onda 3 SWING TRADE Diario BR — sinal $dLabel vs fechamento $dNext"       "#1a1a2e" "R$ "
+$secO3Intra = TableSection $o3IntraEntries "Onda 3 DAY TRADE BR (1m/5m/15m) — sinal $dLabel vs fechamento $dNext"    "#16213e" "R$ "
+$secO3US    = TableSection $o3USEntries    "Onda 3 DAY TRADE US (1m/5m/15m) — sinal $dLabel vs fechamento $dNext"    "#1a2e1e" "US$ "
+$secBR      = TableSection $brEntries      "Resumo Convergencia BR — sinal $dLabel vs fechamento $dNext"              "#2a1e3e" "R$ "
+$secUS      = TableSection $usEntries      "Resumo Convergencia US — sinal $dLabel vs fechamento $dNext"              "#1e3e2a" "US$ "
+$secTrifBR  = TableSection $trifBREntries  "Trifecta BR (Convergente+Exclusivo) — sinal $dLabel vs fechamento $dNext" "#2a3e1e" "R$ "
+$secTrifUS  = TableSection $trifUSEntries  "Trifecta US (Convergente+Exclusivo) — sinal $dLabel vs fechamento $dNext" "#1e2e3e" "US$ "
+$icoSem = [char]::ConvertFromUtf32(0x1F4C5)
+$icoBsm = [char]::ConvertFromUtf32(0x1F4C6)
+$secWk     = if ($hasWeekly)   { AggBlock $wk5   "Resumo Semanal (ultimas 5 sessoes)"    $icoSem } else { "" }
+$secBwk    = if ($hasBiweekly) { AggBlock $bwk10 "Resumo Quinzenal (ultimas 10 sessoes)" $icoBsm } else { "" }
 
-# ---- Bloco analítico ----
-function Build-Analise($o3,$br,$us,$tBR,$tUS,$scO3,$scBR,$scUS,$scTBR,$scTUS) {
-    $linhas = @()
 
-    # Helper: listar acertos/erros por estrategia
-    function Resumo-Strat($entries, $label, $ccy) {
-        $ac = @($entries | Where-Object { $_.res -eq "acerto" })
-        $er = @($entries | Where-Object { $_.res -eq "erro"   })
-        $ne = @($entries | Where-Object { $_.res -eq "neutro" })
-        if ($entries.Count -eq 0) { return "" }
-        $txt = "<b>$label</b>: "
-        if ($ac.Count -gt 0) {
-            $nomes = ($ac | ForEach-Object { "$($_.t) ($($_.pct.ToString('+0.00;-0.00'))%)" }) -join ", "
-            $txt += "<span style='color:#1a7a3a'>&#10003; Acertos: $nomes</span>. "
-        }
-        if ($er.Count -gt 0) {
-            $nomes = ($er | ForEach-Object { "$($_.t) ($($_.pct.ToString('+0.00;-0.00'))%)" }) -join ", "
-            $txt += "<span style='color:#c0392b'>&#10007; Erros: $nomes</span>. "
-        }
-        if ($ne.Count -gt 0) {
-            $nomes = ($ne | ForEach-Object { $_.t }) -join ", "
-            $txt += "<span style='color:#888'>~ Neutros (&lt;0,15%): $nomes</span>."
-        }
-        return "<div style='margin-bottom:6px'>$txt</div>"
-    }
-
-    # Avaliação geral
-    $allEntries = @($o3) + @($br) + @($us)
-    $totAc = @($allEntries | Where-Object { $_.res -eq "acerto" }).Count
-    $totEr = @($allEntries | Where-Object { $_.res -eq "erro"   }).Count
-    $totNe = @($allEntries | Where-Object { $_.res -eq "neutro" }).Count
-    $totAt = $totAc + $totEr
-    $taxaGeral = if ($totAt -gt 0) { [Math]::Round($totAc / $totAt * 100, 1) } else { 0 }
-
-    $corGeral = if ($taxaGeral -ge 60) { "#1a7a3a" } elseif ($taxaGeral -ge 40) { "#b7600a" } else { "#c0392b" }
-    $textoGeral = if ($taxaGeral -ge 60) { "Sesss&atilde;o positiva" } elseif ($taxaGeral -ge 40) { "Sess&atilde;o neutra" } else { "Sess&atilde;o negativa" }
-
-    $linhas += "<div style='font-size:12px;font-weight:700;color:$corGeral;margin-bottom:8px'>$textoGeral &mdash; Taxa geral: $($taxaGeral.ToString('N1',$ptbr))% ($totAc acertos / $totEr erros / $totNe neutros em $($allEntries.Count) sinais)</div>"
-
-    # Por estratégia
-    $linhas += Resumo-Strat $o3  "Onda 3 SWING (Di&aacute;rio)" "R$"
-    $linhas += Resumo-Strat $br  "Resumo BR (Intradiario)"       "R$"
-    $linhas += Resumo-Strat $us  "Resumo US (Intradiario)"       "US$"
-    if ($tBR.Count -gt 0) { $linhas += Resumo-Strat $tBR "Trifecta BR (Velez)" "R$" }
-    if ($tUS.Count -gt 0) { $linhas += Resumo-Strat $tUS "Trifecta US (Velez)" "US$" }
-
-    # Destaque: melhor e pior papel do dia
-    $rankTodos = @($allEntries | Where-Object { $_.res -ne "neutro" } | Sort-Object { [Math]::Abs($_.pct) } -Descending)
-    if ($rankTodos.Count -gt 0) {
-        $melhor = $rankTodos | Where-Object { $_.res -eq "acerto" } | Select-Object -First 1
-        $pior   = $rankTodos | Where-Object { $_.res -eq "erro"   } | Select-Object -First 1
-        $destaques = ""
-        if ($melhor) { $destaques += "<span style='color:#1a7a3a'>&#9650; Melhor: <b>$($melhor.t)</b> $($melhor.pct.ToString('+0.00;-0.00',$ptbr))% ($($melhor.dir))</span>" }
-        if ($melhor -and $pior)  { $destaques += " &nbsp;|&nbsp; " }
-        if ($pior)   { $destaques += "<span style='color:#c0392b'>&#9660; Pior: <b>$($pior.t)</b> $($pior.pct.ToString('+0.00;-0.00',$ptbr))% ($($pior.dir))</span>" }
-        if ($destaques) { $linhas += "<div style='margin-top:6px;font-size:11px'>$destaques</div>" }
-    }
-
-    # Nota de acumulação estatística
-    $notaAcum = "<div style='margin-top:10px;padding:8px 10px;background:#f0f7ff;border-left:3px solid #aac4ff;border-radius:3px;font-size:10px;color:#555'>"
-    $notaAcum += "&#128196; <b>Base estat&iacute;stica:</b> $($log.Count) sess&atilde;o(ões) acumulada(s). "
-    if ($log.Count -lt 3)  { $notaAcum += "O resumo semanal ser&aacute; exibido a partir de 3 sess&otilde;es." }
-    elseif ($log.Count -lt 8) { $notaAcum += "O resumo quinzenal ser&aacute; exibido a partir de 8 sess&otilde;es (atual: $($log.Count))." }
-    else { $notaAcum += "Base suficiente para an&aacute;lise semanal e quinzenal." }
-    $notaAcum += "</div>"
-    $linhas += $notaAcum
-
-    $inner = $linhas -join ""
-    return "<div style='margin-top:20px;padding:14px 16px;background:#fafafa;border:1px solid #ddd;border-radius:6px'><div style='font-size:11px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px'>&#128270; An&aacute;lise do Pregão</div>$inner</div>"
-}
-
-$secAnalise = Build-Analise $o3Entries $brEntries $usEntries $trifBREntries $trifUSEntries $scO3 $scBR $scUS $scTrifBR $scTrifUS
+$allO3Combined = @($o3Entries) + @($o3IntraEntries) + @($o3USEntries)
+$secAnalise = Build-Analise $allO3Combined $brEntries $usEntries $trifBREntries $trifUSEntries $log.Count
 
 $htmlBody = @"
 <html><head><meta charset='UTF-8'><title>Backtest $dateStr</title></head>
@@ -314,13 +257,15 @@ $htmlBody = @"
 </td></tr></table>
 <div style='padding:12px 16px;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;margin-bottom:16px'>
 <div style='font-size:11px;font-weight:700;color:#333;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.4px'>Assertividade de hoje</div>
-$(ScoreBar $scO3     'Onda 3 SWING TRADE (Diario)')
-$(ScoreBar $scBR     'Resumo Convergencia BR (Intradiario)')
-$(ScoreBar $scUS     'Resumo Convergencia US (Intradiario)')
-$(ScoreBar $scTrifBR 'Trifecta BR (Velez)')
-$(ScoreBar $scTrifUS 'Trifecta US (Velez)')
+$(ScoreBar $scO3      'Onda 3 SWING TRADE (Diario BR)')
+$(ScoreBar $scO3Intra 'Onda 3 DAY TRADE BR (1m/5m/15m)')
+$(ScoreBar $scO3US    'Onda 3 DAY TRADE US (1m/5m/15m)')
+$(ScoreBar $scBR      'Resumo Convergencia BR')
+$(ScoreBar $scUS      'Resumo Convergencia US')
+$(ScoreBar $scTrifBR  'Trifecta BR (Velez)')
+$(ScoreBar $scTrifUS  'Trifecta US (Velez)')
 </div>
-$secO3 $secBR $secUS $secTrifBR $secTrifUS $secAnalise $secWk $secBwk
+$secO3 $secO3Intra $secO3US $secBR $secUS $secTrifBR $secTrifUS $secAnalise $secWk $secBwk
 <p style='font-size:10px;color:#aaa;margin-top:18px;text-align:center'>Backtest autom&aacute;tico &mdash; Claude Code | Yahoo Finance | jjovieira@gmail.com</p>
 </body></html>
 "@
@@ -345,23 +290,25 @@ if ($OutFile -ne "") {
     $tg+="$eB <b>Backtest Pregão $($sigTD.ToString('dd/MM/yyyy'))</b>"
     $tg+="Fechamento validado: $($validDate.ToString('dd/MM')) | $totalSinais sinais | Log: $($log.Count) sessoes"
     $tg+=""
-    $tg+=TgLine $scO3     "Onda 3 Diario"
-    $tg+=TgLine $scBR     "Resumo BR"
-    $tg+=TgLine $scUS     "Resumo US"
-    $tg+=TgLine $scTrifBR "Trifecta BR"
-    $tg+=TgLine $scTrifUS "Trifecta US"
+    $tg+=TgLine $scO3      "Onda 3 Swing BR"
+    $tg+=TgLine $scO3Intra "Onda 3 DT BR"
+    $tg+=TgLine $scO3US    "Onda 3 DT US"
+    $tg+=TgLine $scBR      "Resumo BR"
+    $tg+=TgLine $scUS      "Resumo US"
+    $tg+=TgLine $scTrifBR  "Trifecta BR"
+    $tg+=TgLine $scTrifUS  "Trifecta US"
     if ($hasWeekly) {
         $tg+="";$tg+="$eW <b>Ultimas 5 sessoes:</b>"
-        foreach ($s in @("onda3_diario","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
-            $nm=@{onda3_diario="O3";resumo_br="BR";resumo_us="US";trifecta_br="TrifBR";trifecta_us="TrifUS"}[$s];$sc=$wk5.scores[$s]
-            if($sc){$tg+="  $nm $($sc.pct)% ($($sc.c)/$($sc.c+$sc.w))"}
+        foreach ($s in @("onda3_diario","onda3_intraday","onda3_us","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
+            $nm=@{onda3_diario="O3";onda3_intraday="O3-DT-BR";onda3_us="O3-DT-US";resumo_br="BR";resumo_us="US";trifecta_br="TrifBR";trifecta_us="TrifUS"}[$s];$sc=$wk5.scores[$s]
+            if($sc -and $sc.t -gt 0){$tg+="  $nm $($sc.pct)% ($($sc.c)/$($sc.c+$sc.w))"}
         }
     }
     if ($hasBiweekly) {
         $tg+="";$tg+="$eQ <b>Ultimas 10 sessoes:</b>"
-        foreach ($s in @("onda3_diario","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
-            $nm=@{onda3_diario="O3";resumo_br="BR";resumo_us="US";trifecta_br="TrifBR";trifecta_us="TrifUS"}[$s];$sc=$bwk10.scores[$s]
-            if($sc){$tg+="  $nm $($sc.pct)% ($($sc.c)/$($sc.c+$sc.w))"}
+        foreach ($s in @("onda3_diario","onda3_intraday","onda3_us","resumo_br","resumo_us","trifecta_br","trifecta_us")) {
+            $nm=@{onda3_diario="O3";onda3_intraday="O3-DT-BR";onda3_us="O3-DT-US";resumo_br="BR";resumo_us="US";trifecta_br="TrifBR";trifecta_us="TrifUS"}[$s];$sc=$bwk10.scores[$s]
+            if($sc -and $sc.t -gt 0){$tg+="  $nm $($sc.pct)% ($($sc.c)/$($sc.c+$sc.w))"}
         }
     }
     ($tg -join "`n") | Out-File "backtest_telegram.txt" -Encoding UTF8 -NoNewline
