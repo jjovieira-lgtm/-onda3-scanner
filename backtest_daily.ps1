@@ -176,11 +176,12 @@ function Eval-Entries($signals, $isBR, $pmap) {
     return $out
 }
 
-# Onda3 (swing trade): valida sinais de D-1 vs fechamento de D (hoje)
-# Resumo BR/US (day trade): valida sinais de D-1 vs fechamento de D-1 (mesmo pregao)
+# Todas as estrategias: valida sinais de D-1 vs fechamento de D (sessao atual)
+# Onda3 swing: lc = ultimo candle diario (24/06) vs D (hoje) = move de 2 sessoes
+# Resumo BR/US: lc = ultimo candle 30m EOD de D-1 vs D (hoje) = move de 1 sessao
 $o3Entries  = Eval-Entries $sigO3 $true  $priceMapD
-$brEntries  = Eval-Entries $sigBR $true  $priceMapD1
-$usEntries  = Eval-Entries $sigUS $false $priceMapD1
+$brEntries  = Eval-Entries $sigBR $true  $priceMapD
+$usEntries  = Eval-Entries $sigUS $false $priceMapD
 
 # Derivar entradas Trifecta (v = CONVERGENTE ou SO-TRIFECTA significa que o Trifecta estava ativo)
 $trifBREntries = @($brEntries | Where-Object { $_.verdict -eq "CONVERGENTE" -or $_.verdict -eq "SO-TRIFECTA" })
