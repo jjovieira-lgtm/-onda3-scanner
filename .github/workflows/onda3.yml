@@ -1,12 +1,9 @@
 name: Onda3 SWING TRADE Scan
 
 # Scanner Swing Trade - Onda 3 (D + 2h + 30m). Acoes BR (B3).
-# A cada 2 horas a partir das 09:17 BRT, seg-sex:
-#   09:17, 11:17, 13:17, 15:17, 17:17, 19:17 BRT = 12:17, 14:17, 16:17, 18:17, 20:17, 22:17 UTC.
-# Minutos escalonados (17 ao inves de 00) para fugir do congestionamento do GitHub Actions.
 on:
   schedule:
-    - cron: '17 12,14,16,18,20,22 * * 1-5'  # 09:17, 11:17, 13:17, 15:17, 17:17, 19:17 BRT
+    - cron: '17 12,14,16,18,20,22 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -32,23 +29,6 @@ jobs:
           git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
           git add signals/ 2>/dev/null || true
           git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) onda3" && git pull --rebase origin HEAD || true && git push origin HEAD)
-
-      - name: Ler assunto do email
-        id: meta
-        run: echo "subject=$(cat onda3_subject.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Enviar email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.GMAIL_USER }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: ${{ steps.meta.outputs.subject }}
-          to: jjovieira@gmail.com
-          from: Onda3 SWING TRADE <${{ secrets.GMAIL_USER }}>
-          html_body: file://onda3_report.html
 
       - name: Enviar Telegram
         run: |
