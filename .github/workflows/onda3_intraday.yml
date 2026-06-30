@@ -1,11 +1,8 @@
 name: Onda3 Day Trade Scan
 
-# Scanner Day Trade - Onda 3 (timeframes 1m + 5m + 15m). Acoes BR (B3).
-# Hora em hora, seg-sex, mesmo padrao do Resumo Convergencia BR:
-#   09:00 BRT (pre-abertura) | 10:03 BRT (abertura+3min) | 11:00 a 18:00 BRT.
-# BRT = UTC-3. Cron em UTC.
+# Scanner Day Trade - Onda 3 (1m + 5m + 15m). Acoes BR (B3).
 on:
-  workflow_dispatch:  # Sob demanda apenas (agendamento automatico desativado para nao congestionar a fila)
+  workflow_dispatch:
 
 jobs:
   scan:
@@ -30,23 +27,6 @@ jobs:
           git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
           git add signals/ 2>/dev/null || true
           git diff --cached --quiet && echo "Sem novos sinais." || (git commit -m "signals: $(date -u +%Y-%m-%d) onda3_intraday" && git pull --rebase origin HEAD || true && git push origin HEAD)
-
-      - name: Ler assunto do email
-        id: meta
-        run: echo "subject=$(cat onda3_intraday_subject.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Enviar email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.GMAIL_USER }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: ${{ steps.meta.outputs.subject }}
-          to: jjovieira@gmail.com
-          from: Onda3 Day Trade Scanner <${{ secrets.GMAIL_USER }}>
-          html_body: file://onda3_intraday_report.html
 
       - name: Enviar Telegram
         run: |
