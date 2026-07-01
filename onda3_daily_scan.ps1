@@ -1,5 +1,5 @@
 ﻿# onda3_daily_scan.ps1 - Onda 3 SWING TRADE 3-TF (D + 2h + 30m)
-# 31 papeis | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
+# 154 papeis (todo o universo IBRA, exceto futuros) | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
 # Para configurar email: executar onda3_setup.ps1 uma vez
 param([switch]$SemEmail,[string]$OutFile="")
 $ErrorActionPreference = "SilentlyContinue"
@@ -66,7 +66,7 @@ function Classify-3TF($sD,$sH,$sM){
     return @{Conv=$conv;Dir=$dir;Score=$scr}
 }
 
-$tickers=@("ITUB4","PETR4","VALE3","BBAS3","B3SA3","ABEV3","MGLU3","GGBR4","LREN3","USIM5","PRIO3","SUZB3","RENT3","RAIL3","WEGE3","CYRE3","BPAC11","DIRR3","CSAN3","EMBJ3","ASAI3","HAPV3","BEEF3","EGIE3","EQTL3","BBSE3","BRAV3","BBDC4","AXIA3","RDOR3","MULT3")
+$tickers=@("ABCB4","ABEV3","ALOS3","ALPA4","ALUP11","ANIM3","ARML3","ASAI3","AUAU3","AURE3","AXIA3","AZZA3","B3SA3","BBAS3","BBDC3","BBDC4","BBSE3","BEEF3","BHIA3","BLAU3","BMOB3","BPAC11","BRAP4","BRAV3","BRBI11","BRKM5","BRSR6","CAML3","CASH3","CBAV3","CEAB3","CMIG4","CMIN3","COGN3","CPFE3","CPLE3","CSAN3","CSMG3","CSNA3","CURY3","CVCB3","CXSE3","CYRE3","DASA3","DESK3","DIRR3","DXCO3","ECOR3","EGIE3","EMBJ3","ENEV3","ENGI11","EQTL3","EVEN3","EZTC3","FESA4","FLRY3","FRAS3","GFSA3","GGBR4","GGPS3","GMAT3","GOAU4","GRND3","HAPV3","HBOR3","HBSA3","HYPE3","IGTI11","INTB3","IRBR3","ISAE4","ITSA4","ITUB3","ITUB4","JHSF3","JSLG3","KEPL3","KLBN11","LAVV3","LEVE3","LJQQ3","LOGG3","LREN3","LWSA3","MBRF3","MDIA3","MDNE3","MGLU3","MILS3","MOTV3","MOVI3","MRVE3","MULT3","MYPK3","NATU3","ONCO3","ORVR3","PETR3","PETR4","PGMN3","PINE4","PLPL3","PNVL3","POMO3","POMO4","POSI3","PRIO3","PRNR3","PSSA3","QUAL3","RADL3","RAIL3","RANI3","RAPT4","RCSL4","RDOR3","RECV3","RENT3","RIAA3","SANB11","SAPR11","SAUD3","SBFG3","SBSP3","SEER3","SIMH3","SLCE3","SMFT3","SMTO3","SOJA3","SUZB3","SYNE3","TAEE11","TEND3","TFCO4","TGMA3","TIMS3","TOTS3","TTEN3","TUPY3","UGPA3","UNIP6","USIM5","VALE3","VAMO3","VBBR3","VIVA3","VIVT3","VLID3","VTRU3","VULC3","WEGE3","YDUQ3")
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
@@ -102,20 +102,28 @@ function Get-B3Cotahist([string[]]$tk){
 Write-Host "[$dateStr] Scan 3-TF iniciado para $($tickers.Count) papeis..."
 $timer=[System.Diagnostics.Stopwatch]::StartNew()
 
-$dlMap=@{}
-foreach($t in $tickers){
-    $sym="$t.SA"
-    foreach($iv in @("1d","1h","30m")){
-        $rng=if($iv-eq"1d"){"2y"}elseif($iv-eq"1h"){"200d"}else{"60d"}
-        $key="${iv}_$t"
-        $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
-        $url="$baseUrl/$sym" + "?interval=$iv" + "&range=$rng"
-        $dlMap[$key]=$wc.DownloadStringTaskAsync($url)
-    }
-}
+# Baixa em lotes de 31 papeis (mesma concorrencia de pico ja validada em producao,
+# ~93 requisicoes simultaneas) para nao disparar tudo de uma vez e evitar
+# rate-limiting do Yahoo Finance com o universo ampliado (154 papeis).
+$batchSize=31
 $rawMap=@{}
-foreach($key in $dlMap.Keys){
-    try{$json=$dlMap[$key].GetAwaiter().GetResult();$parsed=$json|ConvertFrom-Json;$ch=$parsed.chart.result[0];$rawMap[$key]=@{ts=$ch.timestamp;q=$ch.indicators.quote[0];n=$ch.timestamp.Count}}catch{$rawMap[$key]=$null}
+for($bi=0;$bi-lt$tickers.Count;$bi+=$batchSize){
+    $batch=$tickers[$bi..([Math]::Min($bi+$batchSize-1,$tickers.Count-1))]
+    $dlMap=@{}
+    foreach($t in $batch){
+        $sym="$t.SA"
+        foreach($iv in @("1d","1h","30m")){
+            $rng=if($iv-eq"1d"){"2y"}elseif($iv-eq"1h"){"200d"}else{"60d"}
+            $key="${iv}_$t"
+            $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
+            $url="$baseUrl/$sym" + "?interval=$iv" + "&range=$rng"
+            $dlMap[$key]=$wc.DownloadStringTaskAsync($url)
+        }
+    }
+    foreach($key in $dlMap.Keys){
+        try{$json=$dlMap[$key].GetAwaiter().GetResult();$parsed=$json|ConvertFrom-Json;$ch=$parsed.chart.result[0];$rawMap[$key]=@{ts=$ch.timestamp;q=$ch.indicators.quote[0];n=$ch.timestamp.Count}}catch{$rawMap[$key]=$null}
+    }
+    if($bi+$batchSize-lt$tickers.Count){Start-Sleep -Milliseconds 500}
 }
 $timer.Stop()
 $okCount=($rawMap.Keys|Where-Object{$rawMap[$_]-ne$null}).Count
@@ -256,7 +264,7 @@ $setupTxt=if($dqSetup.Count-gt 0){ JoinT ($dqSetup | ForEach-Object{$_.T}) }else
 $dqLines += "<div><span style='color:#333;font-weight:700'>Vies geral: </span>Setups confirmados (SC/SV): $setupTxt. Total: 2-TF=$n2tf, 1-TF=$n1tf, sem operacao=$nop.</div>"
 $destaques = "<div style='margin-top:14px;padding:12px 14px;background:#fbf7ef;border:1px solid #f0e2c8;border-radius:6px'><div style='font-size:11px;font-weight:700;color:#633806;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px'>Destaques da varredura</div><div style='font-size:11px;color:#333;line-height:1.7'>$($dqLines -join '')</div></div>"
 
-$htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 SWING TRADE</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:780px;margin:0 auto;padding:16px'><table width='100%' style='background:#1a1a2e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>Onda 3 SWING TRADE</span><br><span style='font-size:11px;color:#aac4ff'><b style='color:#ffe8a0'>$dateStr</b> | 31 pap&eacute;is | D + 2h + 30min | MIMA8/17/72 + Fractal72 + Fibonacci 21.4%/78.6%</span></td><td style='text-align:right;vertical-align:top'><span style='background:#FAC775;color:#633806;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>2-TF: $n2tf</span>&nbsp;<span style='background:#B5D4F4;color:#0C447C;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>1-TF: $n1tf</span>&nbsp;<span style='background:#eee;color:#555;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Outros: $nop</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:92px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>D</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>2h</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>30m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:48px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:70px'>Zona</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:80px'>Alvo</th><th style='padding:5px 4px;font-size:10px;color:#666;text-align:right;width:50px'>Pot.%</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Sinais &mdash;</strong> SC=Setup Compra | SV=Setup Venda | PC=Pr&eacute; Compra | PV=Pr&eacute; Venda<br><strong>Converg&ecirc;ncia &mdash;</strong> FORTE=3TFs+3 Setups | CONVERGENTE=3TFs+2SC | PARCIAL=3TFs+1SC | PRE-3TF=3TFs todos PRE | 2-TF=2 TFs alinhados | 1-TF=sinal isolado | OPOSTO=TFs conflitantes<br><strong>Zonas &mdash;</strong> Onda3 Up/Dn=Onda 3 ativa (entre 21.4% e 78.6%) | Zona Verm=Onda 2 em curso | Prox FH/FL=pr&oacute;ximo ao gatilho | Acima FH/Abaixo FL=setup confirmado<br><strong>Fibonacci &mdash;</strong> F21.4%=linha vermelha (fim Onda 2) | F78.6%=Alvo 0 | Ext 1.618/2.618/4.236=proje&ccedil;&otilde;es Onda 3<br><strong>Alvos &mdash;</strong> A0=primeiro alvo | A1=extens&atilde;o 1.618 (quando A0 j&aacute; ultrapassado) | &#9888;=fractal obsoleto<br><strong>Indicadores &mdash;</strong> MIMA=Hull MA (HMA) | MIMA8xMIMA17=cruzamento identifica Onda 3 | MIMA72=linha de tend&ecirc;ncia | Fractal72=pivot high/low com 72 barras cada lado</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Onda 3 SWING TRADE &mdash; Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
+$htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 SWING TRADE</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:780px;margin:0 auto;padding:16px'><table width='100%' style='background:#1a1a2e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>Onda 3 SWING TRADE</span><br><span style='font-size:11px;color:#aac4ff'><b style='color:#ffe8a0'>$dateStr</b> | $($tickers.Count) pap&eacute;is | D + 2h + 30min | MIMA8/17/72 + Fractal72 + Fibonacci 21.4%/78.6%</span></td><td style='text-align:right;vertical-align:top'><span style='background:#FAC775;color:#633806;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>2-TF: $n2tf</span>&nbsp;<span style='background:#B5D4F4;color:#0C447C;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>1-TF: $n1tf</span>&nbsp;<span style='background:#eee;color:#555;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Outros: $nop</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:92px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>D</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>2h</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>30m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:48px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:70px'>Zona</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:80px'>Alvo</th><th style='padding:5px 4px;font-size:10px;color:#666;text-align:right;width:50px'>Pot.%</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Sinais &mdash;</strong> SC=Setup Compra | SV=Setup Venda | PC=Pr&eacute; Compra | PV=Pr&eacute; Venda<br><strong>Converg&ecirc;ncia &mdash;</strong> FORTE=3TFs+3 Setups | CONVERGENTE=3TFs+2SC | PARCIAL=3TFs+1SC | PRE-3TF=3TFs todos PRE | 2-TF=2 TFs alinhados | 1-TF=sinal isolado | OPOSTO=TFs conflitantes<br><strong>Zonas &mdash;</strong> Onda3 Up/Dn=Onda 3 ativa (entre 21.4% e 78.6%) | Zona Verm=Onda 2 em curso | Prox FH/FL=pr&oacute;ximo ao gatilho | Acima FH/Abaixo FL=setup confirmado<br><strong>Fibonacci &mdash;</strong> F21.4%=linha vermelha (fim Onda 2) | F78.6%=Alvo 0 | Ext 1.618/2.618/4.236=proje&ccedil;&otilde;es Onda 3<br><strong>Alvos &mdash;</strong> A0=primeiro alvo | A1=extens&atilde;o 1.618 (quando A0 j&aacute; ultrapassado) | &#9888;=fractal obsoleto<br><strong>Indicadores &mdash;</strong> MIMA=Hull MA (HMA) | MIMA8xMIMA17=cruzamento identifica Onda 3 | MIMA72=linha de tend&ecirc;ncia | Fractal72=pivot high/low com 72 barras cada lado</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Onda 3 SWING TRADE &mdash; Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
 
 if($OutFile -ne ""){ $htmlFile = $OutFile } else { $htmlFile = Join-Path $env:USERPROFILE "Downloads\onda3_report_$dateFile.html" }
 $htmlBody | Out-File $htmlFile -Encoding UTF8
