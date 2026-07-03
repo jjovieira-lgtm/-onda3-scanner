@@ -1,5 +1,5 @@
 ﻿# onda3_daily_scan.ps1 - Onda 3 SWING TRADE 3-TF (D + 2h + 30m)
-# 154 papeis (todo o universo IBRA, exceto futuros) | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
+# 35 papeis (watchlist RTD do IBRA LIVE) | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
 # Para configurar email: executar onda3_setup.ps1 uma vez
 param([switch]$SemEmail,[string]$OutFile="")
 $ErrorActionPreference = "SilentlyContinue"
@@ -66,7 +66,7 @@ function Classify-3TF($sD,$sH,$sM){
     return @{Conv=$conv;Dir=$dir;Score=$scr}
 }
 
-$tickers=@("ABCB4","ABEV3","ALOS3","ALPA4","ALUP11","ANIM3","ARML3","ASAI3","AUAU3","AURE3","AXIA3","AZZA3","B3SA3","BBAS3","BBDC3","BBDC4","BBSE3","BEEF3","BHIA3","BLAU3","BMOB3","BPAC11","BRAP4","BRAV3","BRBI11","BRKM5","BRSR6","CAML3","CASH3","CBAV3","CEAB3","CMIG4","CMIN3","COGN3","CPFE3","CPLE3","CSAN3","CSMG3","CSNA3","CURY3","CVCB3","CXSE3","CYRE3","DASA3","DESK3","DIRR3","DXCO3","ECOR3","EGIE3","EMBJ3","ENEV3","ENGI11","EQTL3","EVEN3","EZTC3","FESA4","FLRY3","FRAS3","GFSA3","GGBR4","GGPS3","GMAT3","GOAU4","GRND3","HAPV3","HBOR3","HBSA3","HYPE3","IGTI11","INTB3","IRBR3","ISAE4","ITSA4","ITUB3","ITUB4","JHSF3","JSLG3","KEPL3","KLBN11","LAVV3","LEVE3","LJQQ3","LOGG3","LREN3","LWSA3","MBRF3","MDIA3","MDNE3","MGLU3","MILS3","MOTV3","MOVI3","MRVE3","MULT3","MYPK3","NATU3","ONCO3","ORVR3","PETR3","PETR4","PGMN3","PINE4","PLPL3","PNVL3","POMO3","POMO4","POSI3","PRIO3","PRNR3","PSSA3","QUAL3","RADL3","RAIL3","RANI3","RAPT4","RCSL4","RDOR3","RECV3","RENT3","RIAA3","SANB11","SAPR11","SAUD3","SBFG3","SBSP3","SEER3","SIMH3","SLCE3","SMFT3","SMTO3","SOJA3","SUZB3","SYNE3","TAEE11","TEND3","TFCO4","TGMA3","TIMS3","TOTS3","TTEN3","TUPY3","UGPA3","UNIP6","USIM5","VALE3","VAMO3","VBBR3","VIVA3","VIVT3","VLID3","VTRU3","VULC3","WEGE3","YDUQ3")
+$tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC11","BRAV3","CSAN3","CYRE3","DIRR3","EGIE3","EMBJ3","EQTL3","GGBR4","HAPV3","ITUB4","LREN3","MGLU3","MOVI3","MULT3","NATU3","PETR4","PRIO3","RADL3","RAIL3","RDOR3","RENT3","SBSP3","SUZB3","USIM5","VALE3","WEGE3")
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
@@ -104,7 +104,7 @@ $timer=[System.Diagnostics.Stopwatch]::StartNew()
 
 # Baixa em lotes de 31 papeis (mesma concorrencia de pico ja validada em producao,
 # ~93 requisicoes simultaneas) para nao disparar tudo de uma vez e evitar
-# rate-limiting do Yahoo Finance com o universo ampliado (154 papeis).
+# rate-limiting do Yahoo Finance.
 $batchSize=31
 $rawMap=@{}
 for($bi=0;$bi-lt$tickers.Count;$bi+=$batchSize){
