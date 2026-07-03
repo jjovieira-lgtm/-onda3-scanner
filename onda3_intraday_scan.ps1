@@ -53,7 +53,7 @@ function Classify-3TF($s1,$s5,$s15){
     return @{Conv=$conv;Dir=$dir;Score=$scr}
 }
 
-$tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC11","BRAV3","CSAN3","CYRE3","DIRR3","EGIE3","EMBJ3","EQTL3","GGBR4","HAPV3","ITUB4","LREN3","MGLU3","MOVI3","MULT3","NATU3","PETR4","PRIO3","RADL3","RAIL3","RDOR3","RENT3","SBSP3","SUZB3","USIM5","VALE3")
+$tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC11","BRAV3","CSAN3","CYRE3","DIRR3","EGIE3","EMBJ3","EQTL3","GGBR4","HAPV3","ITUB4","LREN3","MGLU3","MOVI3","MULT3","NATU3","PETR4","PRIO3","RADL3","RAIL3","RDOR3","RENT3","SBSP3","SUZB3","USIM5","VALE3","WEGE3")
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")

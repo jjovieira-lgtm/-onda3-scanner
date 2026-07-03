@@ -82,7 +82,7 @@ $tickers=@(
     @{T="MGLU3";Y="MGLU3.SA"},@{T="MOVI3";Y="MOVI3.SA"},@{T="MULT3";Y="MULT3.SA"},@{T="NATU3";Y="NATU3.SA"},
     @{T="PETR4";Y="PETR4.SA"},@{T="PRIO3";Y="PRIO3.SA"},@{T="RADL3";Y="RADL3.SA"},@{T="RAIL3";Y="RAIL3.SA"},
     @{T="RDOR3";Y="RDOR3.SA"},@{T="RENT3";Y="RENT3.SA"},@{T="SBSP3";Y="SBSP3.SA"},@{T="SUZB3";Y="SUZB3.SA"},
-    @{T="USIM5";Y="USIM5.SA"},@{T="VALE3";Y="VALE3.SA"}
+    @{T="USIM5";Y="USIM5.SA"},@{T="VALE3";Y="VALE3.SA"},@{T="WEGE3";Y="WEGE3.SA"}
 )
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"

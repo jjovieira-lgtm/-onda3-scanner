@@ -136,7 +136,7 @@ function Pick-News([string]$xmlStr,[string]$nameRx){
 }
 
 # ============ CONFIG ============
-$tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC11","BRAV3","CSAN3","CYRE3","DIRR3","EGIE3","EMBJ3","EQTL3","GGBR4","HAPV3","ITUB4","LREN3","MGLU3","MOVI3","MULT3","NATU3","PETR4","PRIO3","RADL3","RAIL3","RDOR3","RENT3","SBSP3","SUZB3","USIM5","VALE3")
+$tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC11","BRAV3","CSAN3","CYRE3","DIRR3","EGIE3","EMBJ3","EQTL3","GGBR4","HAPV3","ITUB4","LREN3","MGLU3","MOVI3","MULT3","NATU3","PETR4","PRIO3","RADL3","RAIL3","RDOR3","RENT3","SBSP3","SUZB3","USIM5","VALE3","WEGE3")
 # nome da empresa (regex) p/ garantir que a noticia e sobre o ativo
 $coName=@{
  "ITUB4"="Itau|Unibanco";"PETR4"="Petrobras|PBR";"VALE3"="\bVale\b";"BBAS3"="Banco do Brasil";"B3SA3"="\bB3\b";"ABEV3"="Ambev";"MGLU3"="Magazine Luiza|Magalu";"GGBR4"="Gerdau";
