@@ -74,14 +74,15 @@ function Classify($e1,$e5,$e15){
 
 # Mapa ticker (exibicao) -> simbolo Yahoo (.SA = B3).
 $tickers=@(
-    @{T="ITUB4";Y="ITUB4.SA"},@{T="PETR4";Y="PETR4.SA"},@{T="VALE3";Y="VALE3.SA"},@{T="BBAS3";Y="BBAS3.SA"},
-    @{T="B3SA3";Y="B3SA3.SA"},@{T="ABEV3";Y="ABEV3.SA"},@{T="MGLU3";Y="MGLU3.SA"},@{T="GGBR4";Y="GGBR4.SA"},
-    @{T="LREN3";Y="LREN3.SA"},@{T="USIM5";Y="USIM5.SA"},@{T="PRIO3";Y="PRIO3.SA"},@{T="SUZB3";Y="SUZB3.SA"},
-    @{T="RENT3";Y="RENT3.SA"},@{T="RAIL3";Y="RAIL3.SA"},@{T="WEGE3";Y="WEGE3.SA"},@{T="CYRE3";Y="CYRE3.SA"},
-    @{T="BPAC11";Y="BPAC11.SA"},@{T="DIRR3";Y="DIRR3.SA"},@{T="CSAN3";Y="CSAN3.SA"},@{T="EMBJ3";Y="EMBJ3.SA"},
-    @{T="ASAI3";Y="ASAI3.SA"},@{T="HAPV3";Y="HAPV3.SA"},@{T="BEEF3";Y="BEEF3.SA"},@{T="EGIE3";Y="EGIE3.SA"},
-    @{T="EQTL3";Y="EQTL3.SA"},@{T="BBSE3";Y="BBSE3.SA"},@{T="BRAV3";Y="BRAV3.SA"},@{T="BBDC4";Y="BBDC4.SA"},
-    @{T="AXIA3";Y="AXIA3.SA"},@{T="RDOR3";Y="RDOR3.SA"},@{T="MULT3";Y="MULT3.SA"}
+    @{T="ABEV3";Y="ABEV3.SA"},@{T="ASAI3";Y="ASAI3.SA"},@{T="AXIA3";Y="AXIA3.SA"},@{T="B3SA3";Y="B3SA3.SA"},
+    @{T="BBAS3";Y="BBAS3.SA"},@{T="BBDC4";Y="BBDC4.SA"},@{T="BBSE3";Y="BBSE3.SA"},@{T="BEEF3";Y="BEEF3.SA"},
+    @{T="BPAC11";Y="BPAC11.SA"},@{T="BRAV3";Y="BRAV3.SA"},@{T="CSAN3";Y="CSAN3.SA"},@{T="CYRE3";Y="CYRE3.SA"},
+    @{T="DIRR3";Y="DIRR3.SA"},@{T="EGIE3";Y="EGIE3.SA"},@{T="EMBJ3";Y="EMBJ3.SA"},@{T="EQTL3";Y="EQTL3.SA"},
+    @{T="GGBR4";Y="GGBR4.SA"},@{T="HAPV3";Y="HAPV3.SA"},@{T="ITUB4";Y="ITUB4.SA"},@{T="LREN3";Y="LREN3.SA"},
+    @{T="MGLU3";Y="MGLU3.SA"},@{T="MOVI3";Y="MOVI3.SA"},@{T="MULT3";Y="MULT3.SA"},@{T="NATU3";Y="NATU3.SA"},
+    @{T="PETR4";Y="PETR4.SA"},@{T="PRIO3";Y="PRIO3.SA"},@{T="RADL3";Y="RADL3.SA"},@{T="RAIL3";Y="RAIL3.SA"},
+    @{T="RDOR3";Y="RDOR3.SA"},@{T="RENT3";Y="RENT3.SA"},@{T="SBSP3";Y="SBSP3.SA"},@{T="SUZB3";Y="SUZB3.SA"},
+    @{T="USIM5";Y="USIM5.SA"},@{T="VALE3";Y="VALE3.SA"}
 )
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
