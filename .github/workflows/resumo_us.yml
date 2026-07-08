@@ -7,10 +7,11 @@ name: Resumo Convergencia US
 # SEM "gate" de hora: cron fixo no horario de verao (EDT = UTC-4), todo disparo envia.
 # No inverno (EST, ~nov-mar) somar 1h nas horas UTC do cron (ex.: 14 vira 15, etc.).
 on:
-  schedule:
-    - cron: '37 12 * * 1-5'                        # 8:37 ET (pre-abertura NYSE)
-    - cron: '33 13 * * 1-5'                        # 9:33 ET (abertura+3min)
-    - cron: '37 14,15,16,17,18,19,20,21 * * 1-5'  # 10:37 a 17:37 ET (hora em hora)
+  # schedule desativado temporariamente (08/07/2026) — pausa geral pedida pelo usuário.
+  # schedule:
+  #   - cron: '37 12 * * 1-5'                        # 8:37 ET (pre-abertura NYSE)
+  #   - cron: '33 13 * * 1-5'                        # 9:33 ET (abertura+3min)
+  #   - cron: '37 14,15,16,17,18,19,20,21 * * 1-5'  # 10:37 a 17:37 ET (hora em hora)
   workflow_dispatch:
 
 jobs:

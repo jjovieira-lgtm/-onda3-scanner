@@ -5,8 +5,8 @@ name: Backtest Diario
 #             Qua 02:00 UTC = Ter 23:00 BRT -> valida sinais de Seg
 #             Qui/Sex/Sab 02:00 UTC -> valida Ter/Qua/Qui respectivamente
 on:
-  schedule:
-    - cron: '23 2 * * 2-6'  # Ter-Sab 02:23 UTC = Seg-Sex 23:23 BRT
+  # schedule desativado temporariamente (08/07/2026) — ajustes pendentes.
+  # - cron: '23 2 * * 2-6'  # Ter-Sab 02:23 UTC = Seg-Sex 23:23 BRT
   workflow_dispatch:
 
 jobs:

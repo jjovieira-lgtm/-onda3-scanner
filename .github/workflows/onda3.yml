@@ -2,8 +2,9 @@ name: Onda3 SWING TRADE Scan
 
 # Scanner Swing Trade - Onda 3 (D + 2h + 30m). Acoes BR (B3).
 on:
-  schedule:
-    - cron: '17 12,14,16,18,20,22 * * 1-5'
+  # schedule desativado temporariamente (08/07/2026) — pausa geral pedida pelo usuário.
+  # schedule:
+  #   - cron: '17 12,14,16,18,20,22 * * 1-5'
   workflow_dispatch:
 
 jobs:

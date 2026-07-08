@@ -4,10 +4,11 @@ name: Resumo Convergencia BR
 # + noticias relevantes por ativo. Acoes BR. Agenda B3 (BRT): 09:11, 10:03, 11:11-18:11 (cada hora).
 # 09:11 = pre-abertura | 10:03 = abertura+3min (1a barra 2m fechada). Minutos escalonados p/ evitar fila.
 on:
-  schedule:
-    - cron: '11 12 * * 1-5'                        # 09:11 BRT (pre-abertura B3)
-    - cron: '3 13 * * 1-5'                        # 10:03 BRT (abertura+3min)
-    - cron: '11 14,15,16,17,18,19,20,21 * * 1-5'  # 11:11 a 18:11 BRT (hora em hora)
+  # schedule desativado temporariamente (08/07/2026) — pausa geral pedida pelo usuário.
+  # schedule:
+  #   - cron: '11 12 * * 1-5'                        # 09:11 BRT (pre-abertura B3)
+  #   - cron: '3 13 * * 1-5'                        # 10:03 BRT (abertura+3min)
+  #   - cron: '11 14,15,16,17,18,19,20,21 * * 1-5'  # 11:11 a 18:11 BRT (hora em hora)
   workflow_dispatch:
 
 jobs:
