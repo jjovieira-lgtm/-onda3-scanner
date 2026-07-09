@@ -141,7 +141,7 @@ $tickers=@("ABEV3","ASAI3","AXIA3","B3SA3","BBAS3","BBDC4","BBSE3","BEEF3","BPAC
 $coName=@{
  "ITUB4"="Itau|Unibanco";"PETR4"="Petrobras|PBR";"VALE3"="\bVale\b";"BBAS3"="Banco do Brasil";"B3SA3"="\bB3\b";"ABEV3"="Ambev";"MGLU3"="Magazine Luiza|Magalu";"GGBR4"="Gerdau";
  "LREN3"="Renner";"USIM5"="Usiminas";"PRIO3"="PRIO|PetroRio";"SUZB3"="Suzano";"RENT3"="Localiza";"RAIL3"="Rumo";"WEGE3"="\bWEG\b";"CYRE3"="Cyrela";
- "BPAC11"="BTG";"DIRR3"="Direcional";"CSAN3"="Cosan";"EMBJ3"="Embraer";"ASAI3"="Assai";"HAPV3"="Hapvida";"BEEF3"="Minerva";"EGIE3"="Engie";
+ "BPAC11"="BTG";"DIRR3"="Direcional";"CSAN3"="Cosan";"EMBJ3"="Embraer";"ASAI3"="Assai";"HAPV3"="Hapvida";"BEEF3"="Minerva";"EGIE3"="Engie";"AXIA3"="Azzas";
  "EQTL3"="Equatorial";"BBSE3"="BB Seguridade";"BRAV3"="Brava|3R Petroleum";"BBDC4"="Bradesco";"RDOR3"="Rede D|RedeDor";"MULT3"="Multiplan";
  "MOVI3"="Movida";"NATU3"="Natura";"RADL3"="Raia Drogasil|RaiaDrogasil";"SBSP3"="Sabesp"
 }
