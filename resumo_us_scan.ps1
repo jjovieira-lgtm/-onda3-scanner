@@ -131,13 +131,15 @@ function Pick-News([string]$xmlStr,[string]$nameRx){
 }
 
 # ============ CONFIG ============
-$tickers=@("INTC","NVDA","NFLX","AMZN","MU","TSLA","MSFT","GOOG","AMD","META","AAPL","DELL","SPCX","XOM","JPM","V","MA","COST","WMT")
+# Lista sincronizada com os 13 tickers do RTD do Trade USA JV (Trade JV\USA JV\tickers_usa_jv.json),
+# 09/07/2026. GOOGL usa o simbolo Yahoo "GOOG" (classe C, mesma convencao ja usada no
+# onda3_alias do bridge.py) - MNQFUT (futuro Micro E-mini Nasdaq-100) usa "MNQ=F".
+$tickers=@("AAPL","AMD","AMZN","GOOG","INTC","JPM","META","MNQ=F","MSFT","NVDA","PLTR","TSLA","XOM")
 # nome da empresa (regex) p/ garantir que a noticia e sobre o ativo
 $coName=@{
- "INTC"="Intel";"NVDA"="Nvidia";"NFLX"="Netflix";"AMZN"="Amazon";"MU"="Micron";"TSLA"="Tesla";
- "MSFT"="Microsoft";"GOOG"="Google|Alphabet";"AMD"="AMD|Advanced Micro";"META"="Meta Platforms|Facebook|\bMeta\b";
- "AAPL"="Apple";"DELL"="Dell";"SPCX"="SpaceX|Space Exploration";"XOM"="Exxon";"JPM"="JPMorgan|JP Morgan";
- "V"="Visa";"MA"="Mastercard";"COST"="Costco";"WMT"="Walmart"
+ "AAPL"="Apple";"AMD"="AMD|Advanced Micro";"AMZN"="Amazon";"GOOG"="Google|Alphabet";"INTC"="Intel";
+ "JPM"="JPMorgan|JP Morgan";"META"="Meta Platforms|Facebook|\bMeta\b";"MSFT"="Microsoft";"NVDA"="Nvidia";
+ "PLTR"="Palantir";"TSLA"="Tesla";"XOM"="Exxon"
 }
 $mkt="US";$ccy="US`$ ";$cult=[System.Globalization.CultureInfo]::GetCultureInfo("en-US");$newsSuffix=""
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"

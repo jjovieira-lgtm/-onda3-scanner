@@ -1,5 +1,5 @@
 # onda3_us_scan.ps1 - Onda 3 Scanner US 3-TF (1m + 5m + 15m)
-# 19 papeis US | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
+# 13 papeis US (mesma lista do RTD do Trade USA JV) | MIMA8/17/72 (HMA) + Fractal72 + Fibonacci 21.4%/78.6%
 # Envio a cada 2h (horario de NY): 9:33, 9:45, 11:45, 13:45, 15:45, 17:45 ET
 # Para configurar email local: executar onda3_setup.ps1 uma vez (compartilha .onda3_cred.xml)
 param([switch]$SemEmail,[string]$OutFile="")
@@ -53,7 +53,15 @@ function Classify-3TF($s1,$s5,$s15){
     return @{Conv=$conv;Dir=$dir;Score=$scr}
 }
 
-$tickers=@("INTC","NVDA","NFLX","AMZN","MU","TSLA","MSFT","GOOG","AMD","META","AAPL","DELL","SPCX","XOM","JPM","V","MA","COST","WMT")
+# Mapa ticker (exibicao) -> simbolo Yahoo. MNQFUT (futuro Micro E-mini Nasdaq-100) usa
+# o simbolo de futuro continuo do Yahoo (MNQ=F) - nao existe como acao. Lista sincronizada
+# com os 13 tickers do RTD do Trade USA JV (Trade JV\USA JV\tickers_usa_jv.json), 09/07/2026.
+$tickers=@(
+    @{T="AAPL";Y="AAPL"},@{T="AMD";Y="AMD"},@{T="AMZN";Y="AMZN"},@{T="GOOGL";Y="GOOG"},
+    @{T="INTC";Y="INTC"},@{T="JPM";Y="JPM"},@{T="META";Y="META"},@{T="MNQFUT";Y="MNQ=F"},
+    @{T="MSFT";Y="MSFT"},@{T="NVDA";Y="NVDA"},@{T="PLTR";Y="PLTR"},@{T="TSLA";Y="TSLA"},
+    @{T="XOM";Y="XOM"}
+)
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 $dateStr=(Get-Date -Format "dd/MM/yyyy HH:mm")
@@ -64,11 +72,11 @@ Write-Host "[$dateStr] Scan Onda3 US 3-TF (1m/5m/15m) iniciado para $($tickers.C
 $timer=[System.Diagnostics.Stopwatch]::StartNew()
 
 $dlMap=@{}
-foreach($t in $tickers){
-    $sym=$t
+foreach($tk in $tickers){
+    $sym=$tk.Y -replace '\^','%5E'
     foreach($iv in @("1m","5m","15m")){
         $rng=if($iv-eq"1m"){"5d"}elseif($iv-eq"5m"){"30d"}else{"60d"}
-        $key="${iv}_$t"
+        $key="${iv}_$($tk.T)"
         $wc=[System.Net.WebClient]::new();$wc.Headers.Add("User-Agent",$uaStr)
         $url="$baseUrl/$sym" + "?interval=$iv" + "&range=$rng" + "&includePrePost=false"
         $dlMap[$key]=$wc.DownloadStringTaskAsync($url)
@@ -83,7 +91,8 @@ $okCount=($rawMap.Keys|Where-Object{$rawMap[$_]-ne$null}).Count
 Write-Host "Download: $($timer.Elapsed.TotalSeconds.ToString("F1"))s | $okCount ok"
 
 $M1R=@{};$M5R=@{};$M15R=@{}
-foreach($t in $tickers){
+foreach($tk in $tickers){
+    $t=$tk.T
     foreach($iv in @("1m","5m","15m")){
         $rk="${iv}_$t"
         if($rawMap[$rk]){$rd=$rawMap[$rk];$nn=$rd.n;$aC=[double[]]::new($nn);$aHH=[double[]]::new($nn);$aLL=[double[]]::new($nn)
@@ -97,7 +106,8 @@ foreach($t in $tickers){
 }
 
 $results=@()
-foreach($t in $tickers){
+foreach($tk in $tickers){
+    $t=$tk.T
     $r1=$M1R[$t];$r5=$M5R[$t];$r15=$M15R[$t]
     $s1=if($r1){$r1.St}else{"-"};$s5=if($r5){$r5.St}else{"-"};$s15=if($r15){$r15.St}else{"-"}
     $cls=Classify-3TF $s1 $s5 $s15
@@ -204,7 +214,7 @@ $setupTxt=if($dqSetup.Count-gt 0){ JoinT ($dqSetup | ForEach-Object{$_.T}) }else
 $dqLines += "<div><span style='color:#333;font-weight:700'>Vies geral: </span>Setups confirmados (SC/SV): $setupTxt. Total: 2-TF=$n2tf, 1-TF=$n1tf, sem operacao=$nop.</div>"
 $destaques = "<div style='margin-top:14px;padding:12px 14px;background:#fbf7ef;border:1px solid #f0e2c8;border-radius:6px'><div style='font-size:11px;font-weight:700;color:#633806;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px'>Destaques da varredura</div><div style='font-size:11px;color:#333;line-height:1.7'>$($dqLines -join '')</div></div>"
 
-$htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 Scanner US</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:780px;margin:0 auto;padding:16px'><table width='100%' style='background:#16213e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>Onda 3 Scanner &mdash; EUA</span> <span style='background:#FAC775;color:#633806;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700'>$readLabel</span><br><span style='font-size:11px;color:#aac4ff'><b style='color:#ffe8a0'>$dateStr</b> | 19 pap&eacute;is US | 1min + 5min + 15min | MIMA8/17/72 + Fractal72 + Fibonacci 21.4%/78.6%</span></td><td style='text-align:right;vertical-align:top'><span style='background:#FAC775;color:#633806;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>2-TF: $n2tf</span>&nbsp;<span style='background:#B5D4F4;color:#0C447C;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>1-TF: $n1tf</span>&nbsp;<span style='background:#eee;color:#555;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Outros: $nop</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:92px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>1m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>5m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>15m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:48px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:70px'>Zona</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:80px'>Alvo</th><th style='padding:5px 4px;font-size:10px;color:#666;text-align:right;width:50px'>Pot.%</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Sinais &mdash;</strong> SC=Setup Compra | SV=Setup Venda | PC=Pr&eacute; Compra | PV=Pr&eacute; Venda<br><strong>Converg&ecirc;ncia &mdash;</strong> FORTE=3TFs+3 Setups | CONVERGENTE=3TFs+2SC | PARCIAL=3TFs+1SC | PRE-3TF=3TFs todos PRE | 2-TF=2 TFs alinhados | 1-TF=sinal isolado | OPOSTO=TFs conflitantes<br><strong>Zonas &mdash;</strong> Onda3 Up/Dn=Onda 3 ativa (entre 21.4% e 78.6%) | Zona Verm=Onda 2 em curso | Prox FH/FL=pr&oacute;ximo ao gatilho | Acima FH/Abaixo FL=setup confirmado<br><strong>Fibonacci &mdash;</strong> F21.4%=linha vermelha (fim Onda 2) | F78.6%=Alvo 0 | Ext 1.618/2.618/4.236=proje&ccedil;&otilde;es Onda 3<br><strong>Alvos &mdash;</strong> A0=primeiro alvo | A1=extens&atilde;o 1.618 (quando A0 j&aacute; ultrapassado) | &#9888;=fractal obsoleto<br><strong>Timeframes &mdash;</strong> 1m / 5m / 15m (intradi&aacute;rio) | <strong>MIMA</strong>=Hull MA (HMA) | MIMA8xMIMA17=cruzamento identifica Onda 3 | MIMA72=linha de tend&ecirc;ncia | Fractal72=pivot high/low com 72 barras cada lado</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Onda 3 Scanner &mdash; EUA | Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
+$htmlBody = "<html><head><meta charset='UTF-8'><title>Onda 3 Scanner US</title></head><body style='font-family:Arial,sans-serif;font-size:12px;color:#222;max-width:780px;margin:0 auto;padding:16px'><table width='100%' style='background:#16213e;border-radius:6px;padding:14px 18px;margin-bottom:14px'><tr><td><span style='font-size:17px;font-weight:700;color:#fff'>Onda 3 Scanner &mdash; EUA</span> <span style='background:#FAC775;color:#633806;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700'>$readLabel</span><br><span style='font-size:11px;color:#aac4ff'><b style='color:#ffe8a0'>$dateStr</b> | 13 pap&eacute;is US | 1min + 5min + 15min | MIMA8/17/72 + Fractal72 + Fibonacci 21.4%/78.6%</span></td><td style='text-align:right;vertical-align:top'><span style='background:#FAC775;color:#633806;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>2-TF: $n2tf</span>&nbsp;<span style='background:#B5D4F4;color:#0C447C;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>1-TF: $n1tf</span>&nbsp;<span style='background:#eee;color:#555;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600'>Outros: $nop</span></td></tr></table><table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;border:1px solid #e8e8e8'><thead><tr style='background:#f8f8f8;border-bottom:2px solid #e0e0e0'><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:22px'>#</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Papel</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:92px'>Obs.</th><th style='padding:5px 4px;font-size:10px;color:#666;width:14px'></th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>1m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>5m</th><th style='padding:5px 3px;font-size:10px;color:#666;text-align:left;width:30px'>15m</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:48px'>Conv.</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:48px'>Pre&ccedil;o</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:left;width:70px'>Zona</th><th style='padding:5px 6px;font-size:10px;color:#666;text-align:right;width:80px'>Alvo</th><th style='padding:5px 4px;font-size:10px;color:#666;text-align:right;width:50px'>Pot.%</th></tr></thead><tbody>$rows</tbody></table>$destaques<div style='margin-top:14px;padding:10px 12px;background:#f9f9f9;border-radius:4px;font-size:10px;color:#555;line-height:1.9'><strong>Legenda:</strong><br><strong>Sinais &mdash;</strong> SC=Setup Compra | SV=Setup Venda | PC=Pr&eacute; Compra | PV=Pr&eacute; Venda<br><strong>Converg&ecirc;ncia &mdash;</strong> FORTE=3TFs+3 Setups | CONVERGENTE=3TFs+2SC | PARCIAL=3TFs+1SC | PRE-3TF=3TFs todos PRE | 2-TF=2 TFs alinhados | 1-TF=sinal isolado | OPOSTO=TFs conflitantes<br><strong>Zonas &mdash;</strong> Onda3 Up/Dn=Onda 3 ativa (entre 21.4% e 78.6%) | Zona Verm=Onda 2 em curso | Prox FH/FL=pr&oacute;ximo ao gatilho | Acima FH/Abaixo FL=setup confirmado<br><strong>Fibonacci &mdash;</strong> F21.4%=linha vermelha (fim Onda 2) | F78.6%=Alvo 0 | Ext 1.618/2.618/4.236=proje&ccedil;&otilde;es Onda 3<br><strong>Alvos &mdash;</strong> A0=primeiro alvo | A1=extens&atilde;o 1.618 (quando A0 j&aacute; ultrapassado) | &#9888;=fractal obsoleto<br><strong>Timeframes &mdash;</strong> 1m / 5m / 15m (intradi&aacute;rio) | <strong>MIMA</strong>=Hull MA (HMA) | MIMA8xMIMA17=cruzamento identifica Onda 3 | MIMA72=linha de tend&ecirc;ncia | Fractal72=pivot high/low com 72 barras cada lado</div><p style='font-size:10px;color:#aaa;margin-top:10px;text-align:center'>Onda 3 Scanner &mdash; EUA | Claude Code | Dados: Yahoo Finance | jjovieira@gmail.com</p></body></html>"
 
 if($OutFile -ne ""){ $htmlFile = $OutFile } else { $htmlFile = Join-Path $env:USERPROFILE "Downloads\onda3_us_report_$dateFile.html" }
 $htmlBody | Out-File $htmlFile -Encoding UTF8

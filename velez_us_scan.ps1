@@ -1,5 +1,5 @@
 # velez_us_scan.ps1 - Scanner Trifecta (Oliver Velez, gatilho barra elefante) - mercado US
-# 19 papeis US | 2m + 5m + 15m | Vela Elefante: corpo>=70% + corpo>=1.3*ATR(100) + filtro tendencia (SMA8)
+# 13 papeis US (mesma lista do RTD do Trade USA JV) | 2m + 5m + 15m | Vela Elefante: corpo>=70% + corpo>=1.3*ATR(100) + filtro tendencia (SMA8)
 # Logica exata do indicador "VELA ELEFANTE DE OLIVER VELEZ" (Dreadblitz, Pine v4).
 # Envio email+Telegram a cada 2h a partir da abertura da NYSE (9:30 ET): 9:45,11:45,13:45,15:45,17:45 ET.
 # Para email local: reaproveita .onda3_cred.xml (mesmo setup dos outros scanners).
@@ -72,13 +72,14 @@ function Classify($e1,$e5,$e15){
     return @{Conv="-";Dir="NONE";Score=0}
 }
 
-# Mapa ticker (exibicao) -> simbolo Yahoo. SPX = indice ^GSPC.
+# Mapa ticker (exibicao) -> simbolo Yahoo. MNQFUT (futuro Micro E-mini Nasdaq-100) usa o
+# simbolo de futuro continuo do Yahoo (MNQ=F) - nao existe como acao. Lista sincronizada
+# com os 13 tickers do RTD do Trade USA JV (Trade JV\USA JV\tickers_usa_jv.json), 09/07/2026.
 $tickers=@(
-    @{T="INTC";Y="INTC"},@{T="NVDA";Y="NVDA"},@{T="NFLX";Y="NFLX"},@{T="AMZN";Y="AMZN"},
-    @{T="MU";Y="MU"},@{T="TSLA";Y="TSLA"},@{T="MSFT";Y="MSFT"},@{T="GOOG";Y="GOOG"},
-    @{T="AMD";Y="AMD"},@{T="META";Y="META"},@{T="AAPL";Y="AAPL"},@{T="DELL";Y="DELL"},
-    @{T="SPCX";Y="SPCX"},@{T="XOM";Y="XOM"},@{T="JPM";Y="JPM"},@{T="V";Y="V"},
-    @{T="MA";Y="MA"},@{T="COST";Y="COST"},@{T="WMT";Y="WMT"}
+    @{T="AAPL";Y="AAPL"},@{T="AMD";Y="AMD"},@{T="AMZN";Y="AMZN"},@{T="GOOGL";Y="GOOG"},
+    @{T="INTC";Y="INTC"},@{T="JPM";Y="JPM"},@{T="META";Y="META"},@{T="MNQFUT";Y="MNQ=F"},
+    @{T="MSFT";Y="MSFT"},@{T="NVDA";Y="NVDA"},@{T="PLTR";Y="PLTR"},@{T="TSLA";Y="TSLA"},
+    @{T="XOM";Y="XOM"}
 )
 $baseUrl="https://query1.finance.yahoo.com/v8/finance/chart"
 $uaStr="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
