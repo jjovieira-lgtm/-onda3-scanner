@@ -1,0 +1,87 @@
+name: SWING Gatilho (Onda 3 Premium)
+
+# Onda 3 — Zona Premium em candles de 30min (Yahoo), gatilhos da SEMANA corrente,
+# bandas 3%/6%, apuracao forward. Publica no GitHub Pages + Telegram. SEM email.
+# Cron em UTC (GitHub ignora o TZ do env pro schedule): 13-20 UTC = 10h-17h BRT.
+# De hora em hora, seg-sex, no pregao. Minuto :05 pra fugir do congestionamento em :00.
+on:
+  schedule:
+    - cron: '5 13,14,15,16,17,18,19,20 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write     # commitar swing_gatilho_state.json / .html de volta
+  pages: write        # publicar no GitHub Pages
+  id-token: write     # OIDC exigido pelo deploy-pages
+
+concurrency:
+  group: swing-gatilho
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rodar SWING Gatilho
+        run: python swing_gatilho.py
+
+      - name: Commitar estado + HTML
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
+          git add swing_gatilho_state.json swing_gatilho.html || true
+          if git diff --cached --quiet; then
+            echo "Sem alteracoes."
+          else
+            git commit -m "swing gatilho: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin HEAD || true
+            git push origin HEAD
+          fi
+
+      - name: Preparar artefato do Pages
+        run: |
+          mkdir -p _site
+          cp swing_gatilho.html _site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Enviar Telegram
+        if: ${{ hashFiles('swing_gatilho_telegram.txt') != '' }}
+        run: |
+          RESP=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text@swing_gatilho_telegram.txt" \
+            --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_web_page_preview=true")
+          echo "Resposta Telegram: $RESP"
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
