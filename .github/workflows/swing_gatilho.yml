@@ -37,6 +37,15 @@ jobs:
       - name: Rodar SWING Gatilho
         run: python swing_gatilho.py
 
+      # Artefato do Pages preparado ANTES do git: aqui o swing_gatilho.html acabou
+      # de ser gerado e esta LIMPO. Se copiassemos depois do commit/rebase abaixo,
+      # um conflito de rebase poderia deixar marcadores (<<<<<<< HEAD) no arquivo e
+      # eles vazariam pra pagina publicada (bug corrigido 17/07/2026).
+      - name: Preparar artefato do Pages
+        run: |
+          mkdir -p _site
+          cp swing_gatilho.html _site/index.html
+
       - name: Commitar estado + HTML
         continue-on-error: true
         run: |
@@ -48,8 +57,9 @@ jobs:
             echo "Sem alteracoes."
           else
             git commit -m "swing gatilho: $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase origin HEAD || true
-            git push origin HEAD
+            # -X theirs: em conflito, mantem NOSSA versao recem-gerada (evita marcadores).
+            git pull --rebase -X theirs origin HEAD || git rebase --abort || true
+            git push origin HEAD || true
           fi
 
       # Telegram vem ANTES do Pages de proposito: o alerta e o produto principal e
@@ -67,13 +77,9 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
-      # --- Pages (opcional). Requer Settings > Pages > Source: "GitHub Actions"
-      #     definido 1x na mao. Tolerante a falha pra nao derrubar o run/Telegram. ---
-      - name: Preparar artefato do Pages
-        run: |
-          mkdir -p _site
-          cp swing_gatilho.html _site/index.html
-
+      # --- Pages (opcional). Source ja definido como "GitHub Actions" (1x na mao).
+      #     Tolerante a falha pra nao derrubar o run/Telegram. Artefato ja preparado
+      #     acima (antes do git), entao aqui so configura e faz upload. ---
       - name: Configurar Pages
         continue-on-error: true
         uses: actions/configure-pages@v5
