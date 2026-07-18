@@ -1,7 +1,7 @@
 name: SWING Gatilho (Onda 3 Premium)
 
 # Onda 3 — Zona Premium em candles de 30min (Yahoo), gatilhos da SEMANA corrente,
-# bandas 3%/6%, apuracao forward. Publica no GitHub Pages + Telegram. SEM email.
+# bandas 3%/6%, apuracao forward. Telegram SEMPRE; pagina no GitHub Pages (opcional).
 # Cron em UTC (GitHub ignora o TZ do env pro schedule): 13-20 UTC = 10h-17h BRT.
 # De hora em hora, seg-sex, no pregao. Minuto :05 pra fugir do congestionamento em :00.
 on:
@@ -52,24 +52,8 @@ jobs:
             git push origin HEAD
           fi
 
-      - name: Preparar artefato do Pages
-        run: |
-          mkdir -p _site
-          cp swing_gatilho.html _site/index.html
-
-      # Habilita o Pages automaticamente (build_type=workflow) se ainda não estiver
-      # ligado — evita ter que mexer em Settings → Pages na mão. Requer repo público
-      # no plano free (ou GitHub Pro em repo privado).
-      - name: Configurar Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
+      # Telegram vem ANTES do Pages de proposito: o alerta e o produto principal e
+      # NUNCA pode ser bloqueado por um problema de publicacao da pagina.
       - name: Enviar Telegram
         if: ${{ hashFiles('swing_gatilho_telegram.txt') != '' }}
         run: |
@@ -82,6 +66,23 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      # --- Pages (opcional). Requer Settings > Pages > Source: "GitHub Actions"
+      #     definido 1x na mao. Tolerante a falha pra nao derrubar o run/Telegram. ---
+      - name: Preparar artefato do Pages
+        run: |
+          mkdir -p _site
+          cp swing_gatilho.html _site/index.html
+
+      - name: Configurar Pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
 
   deploy:
     needs: build
