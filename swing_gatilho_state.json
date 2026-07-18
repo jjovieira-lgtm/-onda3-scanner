@@ -1,0 +1,41 @@
+{
+ "week": "2026-07-13",
+ "generated": "2026-07-17T22:01:27.814879-03:00",
+ "signals": {
+  "WEGE3|2026-07-16 11:00|BAIXA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": false,
+   "b2": false
+  },
+  "EMBJ3|2026-07-16 10:30|BAIXA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": false,
+   "b2": false
+  },
+  "BEEF3|2026-07-15 12:00|ALTA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": false,
+   "b2": false
+  },
+  "RAIL3|2026-07-14 10:30|ALTA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": false,
+   "b2": false
+  },
+  "MOVI3|2026-07-13 14:30|BAIXA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": true,
+   "b2": true
+  },
+  "PRIO3|2026-07-13 12:30|ALTA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": true,
+   "b2": false
+  },
+  "VALE3|2026-07-13 12:00|BAIXA": {
+   "first_seen": "2026-07-17 22:01",
+   "b1": true,
+   "b2": false
+  }
+ }
+}
