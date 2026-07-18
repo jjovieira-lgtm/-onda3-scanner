@@ -57,6 +57,14 @@ jobs:
           mkdir -p _site
           cp swing_gatilho.html _site/index.html
 
+      # Habilita o Pages automaticamente (build_type=workflow) se ainda não estiver
+      # ligado — evita ter que mexer em Settings → Pages na mão. Requer repo público
+      # no plano free (ou GitHub Pro em repo privado).
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
