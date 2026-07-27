@@ -1,85 +1,15 @@
 {
- "week": "2026-07-20",
- "generated": "2026-07-24T17:20:09.667099-03:00",
+ "week": "2026-07-27",
+ "generated": "2026-07-27T12:42:32.653017-03:00",
  "signals": {
-  "B3SA3|2026-07-23 15:30|ALTA": {
-   "first_seen": "2026-07-23 16:19",
+  "WEGE3|2026-07-27 11:30|ALTA": {
+   "first_seen": "2026-07-27 12:42",
    "b1": false,
    "b2": false
   },
-  "BBAS3|2026-07-23 11:30|ALTA": {
-   "first_seen": "2026-07-23 12:09",
+  "HAPV3|2026-07-27 11:00|BAIXA": {
+   "first_seen": "2026-07-27 12:42",
    "b1": false,
-   "b2": false
-  },
-  "RDOR3|2026-07-23 10:30|BAIXA": {
-   "first_seen": "2026-07-23 12:09",
-   "b1": false,
-   "b2": false
-  },
-  "RENT3|2026-07-23 10:00|BAIXA": {
-   "first_seen": "2026-07-23 12:09",
-   "b1": true,
-   "b2": false
-  },
-  "RADL3|2026-07-22 14:00|BAIXA": {
-   "first_seen": "2026-07-22 15:08",
-   "b1": true,
-   "b2": false
-  },
-  "BBDC4|2026-07-22 12:30|ALTA": {
-   "first_seen": "2026-07-22 13:38",
-   "b1": false,
-   "b2": false
-  },
-  "EMBJ3|2026-07-22 12:00|ALTA": {
-   "first_seen": "2026-07-22 13:38",
-   "b1": false,
-   "b2": false
-  },
-  "BEEF3|2026-07-22 11:30|BAIXA": {
-   "first_seen": "2026-07-22 12:04",
-   "b1": true,
-   "b2": false
-  },
-  "EQTL3|2026-07-22 11:30|BAIXA": {
-   "first_seen": "2026-07-22 12:04",
-   "b1": false,
-   "b2": false
-  },
-  "MGLU3|2026-07-22 11:00|BAIXA": {
-   "first_seen": "2026-07-22 12:04",
-   "b1": true,
-   "b2": false
-  },
-  "ABEV3|2026-07-22 10:30|ALTA": {
-   "first_seen": "2026-07-22 12:04",
-   "b1": false,
-   "b2": false
-  },
-  "CSAN3|2026-07-21 16:30|BAIXA": {
-   "first_seen": "2026-07-22 12:04",
-   "b1": false,
-   "b2": false
-  },
-  "ITUB4|2026-07-21 11:30|BAIXA": {
-   "first_seen": "2026-07-21 13:37",
-   "b1": false,
-   "b2": false
-  },
-  "BBDC4|2026-07-21 10:30|BAIXA": {
-   "first_seen": "2026-07-21 12:04",
-   "b1": false,
-   "b2": false
-  },
-  "ASAI3|2026-07-20 11:30|BAIXA": {
-   "first_seen": "2026-07-20 12:12",
-   "b1": true,
-   "b2": true
-  },
-  "EGIE3|2026-07-20 10:30|BAIXA": {
-   "first_seen": "2026-07-20 12:12",
-   "b1": true,
    "b2": false
   }
  }
