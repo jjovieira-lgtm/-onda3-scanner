@@ -1,69 +1,9 @@
 {
- "week": "2026-07-27",
- "generated": "2026-07-31T18:04:59.197568-03:00",
+ "week": "2026-08-03",
+ "generated": "2026-08-03T12:43:44.329702-03:00",
  "signals": {
-  "MGLU3|2026-07-31 13:00|ALTA": {
-   "first_seen": "2026-07-31 14:38",
-   "b1": true,
-   "b2": false
-  },
-  "CSAN3|2026-07-30 11:30|ALTA": {
-   "first_seen": "2026-07-30 14:28",
-   "b1": true,
-   "b2": false
-  },
-  "USIM5|2026-07-30 11:30|BAIXA": {
-   "first_seen": "2026-07-30 12:11",
-   "b1": true,
-   "b2": true
-  },
-  "PETR4|2026-07-30 10:30|ALTA": {
-   "first_seen": "2026-07-30 12:11",
-   "b1": true,
-   "b2": false
-  },
-  "ASAI3|2026-07-29 15:30|ALTA": {
-   "first_seen": "2026-07-29 16:17",
-   "b1": true,
-   "b2": false
-  },
-  "RAIL3|2026-07-29 10:00|ALTA": {
-   "first_seen": "2026-07-29 12:08",
-   "b1": true,
-   "b2": false
-  },
-  "SUZB3|2026-07-29 10:00|ALTA": {
-   "first_seen": "2026-07-29 12:08",
-   "b1": false,
-   "b2": false
-  },
-  "PETR4|2026-07-28 11:30|BAIXA": {
-   "first_seen": "2026-07-28 12:22",
-   "b1": false,
-   "b2": false
-  },
-  "BBSE3|2026-07-28 10:30|BAIXA": {
-   "first_seen": "2026-07-28 12:22",
-   "b1": false,
-   "b2": false
-  },
-  "RAIL3|2026-07-27 13:00|BAIXA": {
-   "first_seen": "2026-07-27 14:43",
-   "b1": false,
-   "b2": false
-  },
-  "NATU3|2026-07-27 12:00|BAIXA": {
-   "first_seen": "2026-07-27 14:43",
-   "b1": true,
-   "b2": false
-  },
-  "WEGE3|2026-07-27 11:30|ALTA": {
-   "first_seen": "2026-07-27 12:42",
-   "b1": true,
-   "b2": false
-  },
-  "HAPV3|2026-07-27 11:00|BAIXA": {
-   "first_seen": "2026-07-27 12:42",
+  "B3SA3|2026-08-03 11:00|ALTA": {
+   "first_seen": "2026-08-03 12:43",
    "b1": false,
    "b2": false
   }
