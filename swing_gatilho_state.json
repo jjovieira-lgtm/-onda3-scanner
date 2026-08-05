@@ -1,10 +1,25 @@
 {
  "week": "2026-08-03",
- "generated": "2026-08-04T18:13:00.271206-03:00",
+ "generated": "2026-08-05T12:14:04.213012-03:00",
  "signals": {
+  "BRAV3|2026-08-05 11:30|BAIXA": {
+   "first_seen": "2026-08-05 12:14",
+   "b1": false,
+   "b2": false
+  },
+  "VALE3|2026-08-05 11:00|ALTA": {
+   "first_seen": "2026-08-05 12:14",
+   "b1": false,
+   "b2": false
+  },
+  "HAPV3|2026-08-05 10:30|ALTA": {
+   "first_seen": "2026-08-05 12:14",
+   "b1": false,
+   "b2": false
+  },
   "DIRR3|2026-08-04 15:30|ALTA": {
    "first_seen": "2026-08-04 16:38",
-   "b1": false,
+   "b1": true,
    "b2": false
   },
   "ABEV3|2026-08-04 14:30|BAIXA": {
