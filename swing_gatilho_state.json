@@ -1,64 +1,39 @@
 {
- "week": "2026-08-03",
- "generated": "2026-08-07T17:41:12.094718-03:00",
+ "week": "2026-08-10",
+ "generated": "2026-08-10T11:19:50.633117-03:00",
  "signals": {
-  "LREN3|2026-08-07 17:00|BAIXA": {
-   "first_seen": "2026-08-07 17:41",
+  "MGLU3|2026-08-10 11:04|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
    "b1": false,
    "b2": false
   },
-  "SBSP3|2026-08-07 10:30|BAIXA": {
-   "first_seen": "2026-08-07 11:13",
+  "PETR4|2026-08-10 11:00|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
    "b1": false,
    "b2": false
   },
-  "RAIL3|2026-08-07 10:00|BAIXA": {
-   "first_seen": "2026-08-07 11:13",
+  "RDOR3|2026-08-10 11:00|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
+   "b1": false,
+   "b2": false
+  },
+  "EGIE3|2026-08-10 10:30|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
+   "b1": false,
+   "b2": false
+  },
+  "NATU3|2026-08-10 10:30|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
+   "b1": false,
+   "b2": false
+  },
+  "LREN3|2026-08-10 10:00|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
    "b1": true,
    "b2": false
   },
-  "PRIO3|2026-08-05 14:30|ALTA": {
-   "first_seen": "2026-08-05 16:35",
-   "b1": false,
-   "b2": false
-  },
-  "BRAV3|2026-08-05 11:30|BAIXA": {
-   "first_seen": "2026-08-05 12:14",
-   "b1": true,
-   "b2": false
-  },
-  "VALE3|2026-08-05 11:00|ALTA": {
-   "first_seen": "2026-08-05 12:14",
-   "b1": false,
-   "b2": false
-  },
-  "HAPV3|2026-08-05 10:30|ALTA": {
-   "first_seen": "2026-08-05 12:14",
-   "b1": false,
-   "b2": false
-  },
-  "DIRR3|2026-08-04 15:30|ALTA": {
-   "first_seen": "2026-08-04 16:38",
-   "b1": true,
-   "b2": false
-  },
-  "ABEV3|2026-08-04 14:30|BAIXA": {
-   "first_seen": "2026-08-04 16:38",
-   "b1": false,
-   "b2": false
-  },
-  "EGIE3|2026-08-04 14:30|ALTA": {
-   "first_seen": "2026-08-04 16:38",
-   "b1": false,
-   "b2": false
-  },
-  "LREN3|2026-08-04 14:00|ALTA": {
-   "first_seen": "2026-08-04 14:49",
-   "b1": false,
-   "b2": false
-  },
-  "B3SA3|2026-08-03 11:00|ALTA": {
-   "first_seen": "2026-08-03 12:43",
+  "RENT3|2026-08-10 10:00|BAIXA": {
+   "first_seen": "2026-08-10 11:19",
    "b1": true,
    "b2": false
   }
