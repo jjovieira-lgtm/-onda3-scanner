@@ -1,7 +1,22 @@
 {
  "week": "2026-09-21",
- "generated": "2026-09-22T17:57:52.642924-03:00",
+ "generated": "2026-09-23T14:44:58.041732-03:00",
  "signals": {
+  "EGIE3|2026-09-23 10:30|BAIXA": {
+   "first_seen": "2026-09-23 14:44",
+   "b1": true,
+   "b2": false
+  },
+  "GGBR4|2026-09-23 10:30|BAIXA": {
+   "first_seen": "2026-09-23 14:44",
+   "b1": false,
+   "b2": false
+  },
+  "MULT3|2026-09-23 10:30|ALTA": {
+   "first_seen": "2026-09-23 14:44",
+   "b1": false,
+   "b2": false
+  },
   "LREN3|2026-09-22 16:30|ALTA": {
    "first_seen": "2026-09-22 17:57",
    "b1": false,
@@ -14,8 +29,8 @@
   },
   "CSAN3|2026-09-22 12:30|ALTA": {
    "first_seen": "2026-09-22 14:32",
-   "b1": false,
-   "b2": false
+   "b1": true,
+   "b2": true
   },
   "EMBJ3|2026-09-22 12:00|ALTA": {
    "first_seen": "2026-09-22 14:32",
@@ -24,12 +39,12 @@
   },
   "RENT3|2026-09-22 12:00|ALTA": {
    "first_seen": "2026-09-22 14:32",
-   "b1": false,
+   "b1": true,
    "b2": false
   },
   "RDOR3|2026-09-22 11:30|ALTA": {
    "first_seen": "2026-09-22 14:32",
-   "b1": false,
+   "b1": true,
    "b2": false
   },
   "EQTL3|2026-09-22 10:30|ALTA": {
