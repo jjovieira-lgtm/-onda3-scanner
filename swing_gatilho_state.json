@@ -1,5 +1,26 @@
 {
  "week": "2026-10-12",
- "generated": "2026-10-14T18:20:34.126973-03:00",
- "signals": {}
+ "generated": "2026-10-15T14:38:25.944736-03:00",
+ "signals": {
+  "BEEF3|2026-10-15 14:00|BAIXA": {
+   "first_seen": "2026-10-15 14:38",
+   "b1": false,
+   "b2": false
+  },
+  "BBDC4|2026-10-15 12:30|BAIXA": {
+   "first_seen": "2026-10-15 14:38",
+   "b1": false,
+   "b2": false
+  },
+  "NATU3|2026-10-15 12:30|BAIXA": {
+   "first_seen": "2026-10-15 14:38",
+   "b1": false,
+   "b2": false
+  },
+  "GGBR4|2026-10-15 10:30|ALTA": {
+   "first_seen": "2026-10-15 14:38",
+   "b1": false,
+   "b2": false
+  }
+ }
 }
