@@ -1,36 +1,5 @@
 {
- "week": "2026-10-26",
- "generated": "2026-10-30T19:48:46.024719-03:00",
- "signals": {
-  "RADL3|2026-10-30 14:00|BAIXA": {
-   "first_seen": "2026-10-30 15:26",
-   "b1": false,
-   "b2": false
-  },
-  "BBSE3|2026-10-30 10:00|BAIXA": {
-   "first_seen": "2026-10-30 15:26",
-   "b1": false,
-   "b2": false
-  },
-  "GGBR4|2026-10-26 11:00|BAIXA": {
-   "first_seen": "2026-10-26 16:02",
-   "b1": true,
-   "b2": true
-  },
-  "HAPV3|2026-10-26 10:30|BAIXA": {
-   "first_seen": "2026-10-26 16:02",
-   "b1": true,
-   "b2": true
-  },
-  "ITUB4|2026-10-26 10:30|BAIXA": {
-   "first_seen": "2026-10-26 16:02",
-   "b1": true,
-   "b2": true
-  },
-  "RAIL3|2026-10-26 10:30|BAIXA": {
-   "first_seen": "2026-10-26 16:02",
-   "b1": true,
-   "b2": true
-  }
- }
+ "week": "2026-11-02",
+ "generated": "2026-11-02T19:10:54.237709-03:00",
+ "signals": {}
 }
