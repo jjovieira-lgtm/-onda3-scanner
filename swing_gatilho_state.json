@@ -1,56 +1,11 @@
 {
- "week": "2026-11-09",
- "generated": "2026-11-13T17:21:05.212285-03:00",
+ "week": "2026-11-16",
+ "generated": "2026-11-16T19:45:08.269192-03:00",
  "signals": {
-  "BPAC11|2026-11-13 13:30|BAIXA": {
-   "first_seen": "2026-11-13 17:21",
-   "b1": false,
-   "b2": false
-  },
-  "MGLU3|2026-11-13 11:30|ALTA": {
-   "first_seen": "2026-11-13 17:21",
+  "RENT3|2026-11-16 10:30|BAIXA": {
+   "first_seen": "2026-11-16 19:45",
    "b1": true,
    "b2": false
-  },
-  "B3SA3|2026-11-12 11:00|ALTA": {
-   "first_seen": "2026-11-12 17:39",
-   "b1": false,
-   "b2": false
-  },
-  "BEEF3|2026-11-12 11:00|ALTA": {
-   "first_seen": "2026-11-12 17:39",
-   "b1": true,
-   "b2": true
-  },
-  "SBSP3|2026-11-11 10:30|ALTA": {
-   "first_seen": "2026-11-11 17:01",
-   "b1": false,
-   "b2": false
-  },
-  "AXIA3|2026-11-11 10:00|ALTA": {
-   "first_seen": "2026-11-11 17:01",
-   "b1": false,
-   "b2": false
-  },
-  "EGIE3|2026-11-10 14:00|ALTA": {
-   "first_seen": "2026-11-10 17:16",
-   "b1": false,
-   "b2": false
-  },
-  "EQTL3|2026-11-10 12:00|ALTA": {
-   "first_seen": "2026-11-10 17:16",
-   "b1": false,
-   "b2": false
-  },
-  "ABEV3|2026-11-09 13:30|ALTA": {
-   "first_seen": "2026-11-09 19:53",
-   "b1": false,
-   "b2": false
-  },
-  "ASAI3|2026-11-09 11:30|ALTA": {
-   "first_seen": "2026-11-09 19:53",
-   "b1": true,
-   "b2": true
   }
  }
 }
